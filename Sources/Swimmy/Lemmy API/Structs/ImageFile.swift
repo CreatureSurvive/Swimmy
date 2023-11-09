@@ -10,4 +10,9 @@ import Foundation
 public struct ImageFile: Codable, Hashable {
     public let delete_token: String
     public let file: String
+
+    public init(delete_token: String, file: String) {
+        self.delete_token = delete_token
+        self.file = file
+    }
 }

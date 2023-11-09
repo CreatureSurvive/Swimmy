@@ -11,11 +11,7 @@ public struct DistinguishCommentRequest: APIRequest {
     public let distinguished: Bool
     public let auth: String
 
-    public init(
-        comment_id: Int,
-        distinguished: Bool,
-        auth: String
-    ) {
+    public init(comment_id: Int, distinguished: Bool, auth: String) {
         self.comment_id = comment_id
         self.distinguished = distinguished
         self.auth = auth

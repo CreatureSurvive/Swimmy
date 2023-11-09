@@ -17,10 +17,7 @@ import Foundation
      public let auth: String?
      public let id: Int
 
-     public init(
-         auth: String? = nil,
-         id: Int
-     ) {
+     public init(auth: String? = nil, id: Int) {
          self.auth = auth
          self.id = id
      }
