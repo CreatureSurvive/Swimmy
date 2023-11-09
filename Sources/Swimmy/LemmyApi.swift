@@ -272,6 +272,64 @@ public class LemmyAPI {
     }
 }
 
+extension LemmyAPI {
+    
+    /// finds the correct api endpoint for a lemmy instance base url
+    /// throws: `LemmyAPIError.endpointResolveError` if the endpoint could not be resolved
+    public static func getApiEndpoint(baseInstanceAddress: String) async throws -> URL {
+        var validAddress: URL?
+        
+        let baseURLString = (baseInstanceAddress.hasSuffix("/") ? String(baseInstanceAddress.dropLast(1)) as String : baseInstanceAddress)
+            .replacingOccurrences(of: "https://", with: "")
+            .replacingOccurrences(of: "http://", with: "")
+            .replacingOccurrences(of: "www.", with: "")
+            .lowercased()
+        
+        let possibleInstanceAddresses = [
+            URL(string: "https://\(baseURLString)/api/v3/site"),
+            URL(string: "https://\(baseURLString)/api/v2/site"),
+            URL(string: "https://\(baseURLString)/api/v1/site")
+        ].compactMap{ $0 }
+        
+        for address in possibleInstanceAddresses {
+            if await checkIfEndpointExists(at: address) {
+                print("\(address) is valid")
+                validAddress = address.deletingLastPathComponent()
+                break
+            } else {
+                print("\(address) is invalid")
+                continue
+            }
+        }
+        
+        if let validAddress = validAddress {
+            return validAddress
+        }
+        
+        throw LemmyAPIError.endpointResolveError(baseInstanceAddress)
+    }
+
+    /// takes a url that points to a valid lemmy api endpoint that responds to GET requests
+    /// returns true if the endpoint responds with a status of 200
+    public static func checkIfEndpointExists(at url: URL) async -> Bool {
+        
+        var request: URLRequest = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = TimeInterval(2)
+        
+        do {
+            let (_, response) = try await session.data(for: request)
+            let httpResponse: HTTPURLResponse = response as! HTTPURLResponse
+            
+            print("Response for endpoint \(url) is \(httpResponse.statusCode)")
+            
+            return  httpResponse.statusCode == 200
+        } catch {
+            return false
+        }
+    }
+}
+
 public enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
@@ -287,6 +345,7 @@ public enum LemmyAPIError: Error {
     case genericError(String)
     case notLoggedIn
     case invalidUrl
+    case endpointResolveError(String)
 }
 
 public struct GenericError: Codable {
@@ -317,6 +376,8 @@ extension LemmyAPIError: LocalizedError {
             return "LemmyApi could not decode response: \(message), reason: \(error.localizedDescription)"
         case .invalidUrl:
             return "lemmyAPI base url is invalid"
+        case .endpointResolveError:
+            return "Failed to resolve endpoint: check the instance url"
         }
     }
 }
