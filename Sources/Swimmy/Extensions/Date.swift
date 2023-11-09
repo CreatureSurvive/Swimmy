@@ -7,10 +7,10 @@
 
 import Foundation
 
-extension Date {
+public extension Date {
     
     /// returns a string in the format `5(s,m,h,d,w,mo,y)` eg: `5m`
-    func timeAgoDisplay() -> String {
+    var timeAgoDisplay: String {
         let calendar = Calendar.current
 
         if calendar.date(byAdding: .minute, value: -1, to: .now)! < self { // less than minute ago
@@ -49,10 +49,10 @@ extension Date {
     }
 }
 
-struct DateHelpers {
+public struct DateHelpers {
     
     /// possible formats used by Lemmy
-    static let dateFormats: [String] = [
+    public static let dateFormats: [String] = [
         "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ",
         "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
         "yyyy-MM-dd'T'HH:mm:ssZ",
@@ -65,15 +65,15 @@ struct DateHelpers {
     ]
     
     /// the GMT timezone
-    static let GMT: TimeZone = TimeZone(identifier: "GMT")!
+    public static let GMT: TimeZone = TimeZone(identifier: "GMT")!
     
     /// the current time in the GMT timezone
-    static var nowGMT: Date {
+    public static var nowGMT: Date {
         return .now.convert(from: Calendar.current.timeZone, to: GMT)
     }
     
     /// formatters for each format used by Lemmy
-    static let formatters: [DateFormatter] = dateFormats.map { format in
+    public static let formatters: [DateFormatter] = dateFormats.map { format in
         let formatter = DateFormatter()
         formatter.timeZone = GMT
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -81,11 +81,11 @@ struct DateHelpers {
         return formatter
     }
     
-    static let ISO8061Formatter: ISO8601DateFormatter = {
+    public static let ISO8061Formatter: ISO8601DateFormatter = {
         ISO8601DateFormatter()
     }()
     
-    static var formatter: DateFormatter = {
+    public static var formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeZone = GMT
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
@@ -93,7 +93,7 @@ struct DateHelpers {
     }()
     
     /// formatter used to produce a time since string
-    static var timeSinceFormatter: RelativeDateTimeFormatter = {
+    public static var timeSinceFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.dateTimeStyle = .numeric
         formatter.unitsStyle = .full
@@ -102,16 +102,16 @@ struct DateHelpers {
         return formatter
     }()
     
-    static func timeSinceLong(timestamp: String) -> String? {
+    public static func timeSinceLong(timestamp: String) -> String? {
         guard let date = dateForString(timestamp) else { return nil }
         return timeSinceFormatter.localizedString(for: date, relativeTo: nowGMT)
     }
     
-    static func timeSinceLong(timestamp: Date) -> String? {
+    public static func timeSinceLong(timestamp: Date) -> String? {
         return timeSinceFormatter.localizedString(for: timestamp, relativeTo: nowGMT)
     }
     
-    static func dateForString(_ string: String) -> Date? {
+    public static func dateForString(_ string: String) -> Date? {
         
         if let date = ISO8061Formatter.date(from: string) {
             return date
