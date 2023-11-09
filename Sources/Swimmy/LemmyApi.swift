@@ -39,7 +39,7 @@ public class LemmyAPI {
     /// the instance endpoint eg https://instance.com
     public let instanceUrl: URL
     
-	private let additionalHeaders: [String: String]
+    private let additionalHeaders: [String: String]
     private let urlSession: URLSession
     
     public static let headers: [String:String] = [
@@ -63,9 +63,9 @@ public class LemmyAPI {
         let configuration = URLSessionConfiguration.ephemeral
         return URLSession(configuration: configuration, delegate: nil, delegateQueue: operationQueue)
     }()
-
-	public init(baseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) throws {
-		self.baseUrl = baseUrl
+    
+    public init(baseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) throws {
+        self.baseUrl = baseUrl
         guard
             var components = URLComponents(url: baseUrl, resolvingAgainstBaseURL: false),
             let instanceUrl = {
@@ -83,7 +83,7 @@ public class LemmyAPI {
         if let userAgent = additionalHeaders["User-Agent"] {
             self.userAgent = userAgent
         }
-	}
+    }
     
     public init(safeBaseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) {
         let rootUrl = safeBaseUrl.getRootUrl
@@ -134,7 +134,7 @@ public class LemmyAPI {
                 .appending(queryItems: mirror.children.compactMap { label, value in
                     guard let label = label,
                           let valueString = value as? CustomStringConvertible else { return nil }
-
+                    
                     return URLQueryItem(name: label, value: String(describing: valueString))
                 })
         } else {
@@ -182,7 +182,7 @@ public class LemmyAPI {
         return result
     }
     
-    public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (T.Response?, Error?) -> Void) throws -> AnyCancellable {
+    public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (Result<T.Response, Error>) -> Void) throws -> AnyCancellable {
         let request = try urlRequest(apiRequest, timeout: timeout)
         print("LemmyAPI request: \(request.debugDescription)")
         
@@ -207,7 +207,7 @@ public class LemmyAPI {
             }
             return v
         }
-//        .retryWithDelay(retries: retries, delay: 2, scheduler: LemmyAPI.dispatchQueue.cx)
+        //        .retryWithDelay(retries: retries, delay: 2, scheduler: LemmyAPI.dispatchQueue.cx)
         .flatMap { v in
             Just(v.data)
                 .decode(type: T.Response.self, decoder: JSONDecoder())
@@ -232,11 +232,57 @@ public class LemmyAPI {
             switch completion {
             case .finished: break
             case let .failure(error):
-                response(nil, error)
+                response(Result.failure(error))
             }
         }, receiveValue: { value in
-            response(value, nil)
+            response(Result.success(value))
         })
+    }
+    
+    public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, store: inout Set<AnyCancellable>) async -> (T.Response?, Error?) {
+        return await withCheckedContinuation { continuation in
+            do {
+                try request(apiRequest) { result in
+                    switch result {
+                    case .success(let response):
+                        continuation.resume(returning: (response, nil))
+                    case .failure(let error):
+                        continuation.resume(returning: (nil, error))
+                    }
+                }.store(in: &store)
+            } catch {
+                continuation.resume(returning: (nil, error))
+            }
+        }
+    }
+    
+    public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, store: inout Set<AnyCancellable>) async throws -> T.Response {
+        return try await withCheckedThrowingContinuation { continuation in
+            do {
+                try request(apiRequest) { result in
+                    switch result {
+                    case .success(let response):
+                        continuation.resume(returning: response)
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }.store(in: &store)
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+    
+    public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, store: inout Set<AnyCancellable>) async -> Result<T.Response, Error> {
+        return await withCheckedContinuation { continuation in
+            do {
+                try request(apiRequest) { result in
+                    continuation.resume(returning: result)
+                }.store(in: &store)
+            } catch {
+                continuation.resume(returning: Result.failure(error))
+            }
+        }
     }
     
     public func uploadRequest(_ apiRequest: UploadImageRequest) async throws -> UploadImageRequest.Response {
