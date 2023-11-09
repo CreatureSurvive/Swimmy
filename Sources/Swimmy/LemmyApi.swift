@@ -71,6 +71,15 @@ public class LemmyAPI {
         self.urlSession = urlSession
 	}
     
+    public init(safeBaseUrl: URL, headers: [String: String]? = headers, urlSession: URLSession = session) {
+        let rootUrl = safeBaseUrl.getRootUrl
+        self.baseUrl = safeBaseUrl
+        self.instanceUrl = rootUrl
+        self.pictrsUrl = rootUrl.appending(path: "/pictrs/image")
+        self.headers = headers
+        self.urlSession = urlSession
+    }
+    
     public convenience init(baseUrl: String, version: String = "v3", headers: [String: String]? = headers, urlSession: URLSession = session) throws {
         var baseUrl = baseUrl.lowercased()
         let regex = "https?://"
