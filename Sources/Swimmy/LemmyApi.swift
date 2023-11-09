@@ -19,6 +19,7 @@ let swimmyVersion: String = "1.0.0"
 /// An instance of the Lemmy API.
 public class LemmyAPI {
     public var retries: Int = 0
+    public var userAgent = "Swimmy/\(swimmyVersion); (Lemmy Swift API))"
     
     /// the api endpoint eg https://instance.com/api/v3
     public let baseUrl: URL
@@ -27,11 +28,10 @@ public class LemmyAPI {
     /// the instance endpoint eg https://instance.com
     public let instanceUrl: URL
     
-	private let headers: [String: String]?
+	private let additionalHeaders: [String: String]
     private let urlSession: URLSession
     
     public static let headers: [String:String] = [
-        "User-Agent" : "Swimmy/\(swimmyVersion); (Lemmy Swift API))",
         "Accept-Encoding" : "gzip",
         "charset" : "UTF-8"
     ]
@@ -53,7 +53,7 @@ public class LemmyAPI {
         return URLSession(configuration: configuration, delegate: nil, delegateQueue: operationQueue)
     }()
 
-	public init(baseUrl: URL, headers: [String: String]? = headers, urlSession: URLSession = session) throws {
+	public init(baseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) throws {
 		self.baseUrl = baseUrl
         guard
             var components = URLComponents(url: baseUrl, resolvingAgainstBaseURL: false),
@@ -67,20 +67,26 @@ public class LemmyAPI {
         }
         self.instanceUrl = instanceUrl
         self.pictrsUrl = instanceUrl.appending(path: "/pictrs/image")
-		self.headers = headers
+        self.additionalHeaders = LemmyAPI.headers.merging(headers ?? [:]) { (_, new) in new }
         self.urlSession = urlSession
+        if let userAgent = additionalHeaders["User-Agent"] {
+            self.userAgent = userAgent
+        }
 	}
     
-    public init(safeBaseUrl: URL, headers: [String: String]? = headers, urlSession: URLSession = session) {
+    public init(safeBaseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) {
         let rootUrl = safeBaseUrl.getRootUrl
         self.baseUrl = safeBaseUrl
         self.instanceUrl = rootUrl
         self.pictrsUrl = rootUrl.appending(path: "/pictrs/image")
-        self.headers = headers
+        self.additionalHeaders = LemmyAPI.headers.merging(headers ?? [:]) { (_, new) in new }
         self.urlSession = urlSession
+        if let userAgent = additionalHeaders["User-Agent"] {
+            self.userAgent = userAgent
+        }
     }
     
-    public convenience init(baseUrl: String, version: String = "v3", headers: [String: String]? = headers, urlSession: URLSession = session) throws {
+    public convenience init(baseUrl: String, version: String = "v3", headers: [String: String]? = nil, urlSession: URLSession = session) throws {
         var baseUrl = baseUrl.lowercased()
         let regex = "https?://"
         if baseUrl.range(of: regex, options: .regularExpression) == nil {
@@ -100,6 +106,12 @@ public class LemmyAPI {
         var request = URLRequest(url: baseUrl.appending(path: T.path))
         request.httpMethod = T.httpMethod.rawValue
         request.timeoutInterval = timeout
+        
+        for (key, value) in additionalHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         
         if let auth = apiRequest.jwt {
             request.setValue( "Bearer \(auth)", forHTTPHeaderField: "Authorization")
