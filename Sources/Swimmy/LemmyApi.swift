@@ -13,13 +13,24 @@ import Combine
 import CombineX
 #endif
 
-let swimmyVersion: String = "1.0.0"
+public struct SwimmyVersion {
+    public static let version: String = "1.0"
+    public static let build: String = "0"
+    
+    public static var fullVersion: String {
+        "\(version).\(build)"
+    }
+    
+    public static var userAgent: String {
+        "Swimmy/\(fullVersion); (Lemmy Swift API)"
+    }
+}
 
 
 /// An instance of the Lemmy API.
 public class LemmyAPI {
     public var retries: Int = 0
-    public var userAgent = "Swimmy/\(swimmyVersion); (Lemmy Swift API))"
+    public var userAgent = SwimmyVersion.userAgent
     
     /// the api endpoint eg https://instance.com/api/v3
     public let baseUrl: URL
