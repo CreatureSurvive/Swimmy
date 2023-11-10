@@ -1,5 +1,4 @@
 import Foundation
-import UniformTypeIdentifiers
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -287,7 +286,7 @@ public class LemmyAPI {
     
     public func uploadRequest(_ apiRequest: UploadImageRequest) async throws -> UploadImageRequest.Response {
         let request = MultipartFormDataRequest(url: pictrsUrl)
-        request.addDataField(named: "images[]", data: apiRequest.image, mimeType: UTType.image.identifier)
+        request.addDataField(named: "images[]", data: apiRequest.image, mimeType: "public.image")
         var urlRequest = request.asURLRequest()
         if let auth = apiRequest.auth {
             urlRequest.setValue("jwt=\(auth)", forHTTPHeaderField: "Cookie")
