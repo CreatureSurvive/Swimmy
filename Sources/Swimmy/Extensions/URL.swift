@@ -60,3 +60,9 @@ extension URL {
         return url
     }
 }
+
+extension String {
+    var asURL: URL? {
+        return URL(string: self)
+    }
+}

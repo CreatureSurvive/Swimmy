@@ -92,25 +92,6 @@ public struct DateHelpers {
         return formatter
     }()
     
-    /// formatter used to produce a time since string
-    public static var timeSinceFormatter: RelativeDateTimeFormatter = {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.dateTimeStyle = .numeric
-        formatter.unitsStyle = .full
-        formatter.formattingContext = .standalone
-        formatter.calendar = .autoupdatingCurrent
-        return formatter
-    }()
-    
-    public static func timeSinceLong(timestamp: String) -> String? {
-        guard let date = dateForString(timestamp) else { return nil }
-        return timeSinceFormatter.localizedString(for: date, relativeTo: nowGMT)
-    }
-    
-    public static func timeSinceLong(timestamp: Date) -> String? {
-        return timeSinceFormatter.localizedString(for: timestamp, relativeTo: nowGMT)
-    }
-    
     public static func dateForString(_ string: String) -> Date? {
         
         if let date = ISO8061Formatter.date(from: string) {

@@ -25,6 +25,15 @@ public struct SwimmyVersion {
     }
 }
 
+let decoder = {
+    let decoder = JSONDecoder()
+#if os(Linux)
+    return decoder.cx
+#else
+    return decoder
+#endif
+}()
+
 
 /// An instance of the Lemmy API.
 public class LemmyAPI {
@@ -144,6 +153,7 @@ public class LemmyAPI {
         return request
     }
     
+#if !os(Linux)
     public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (T.Response, URLResponse, Data) {
         let request = try urlRequest(apiRequest, timeout: timeout)
         print("LemmyAPI request: \(request.debugDescription)")
@@ -151,7 +161,7 @@ public class LemmyAPI {
         
         let code = (response as! HTTPURLResponse).statusCode
         if !(200..<300).contains(code) {
-            if let genericError = try? JSONDecoder().decode(GenericError.self, from: data), let reason = genericError.error {
+            if let genericError = try? decoder.decode(GenericError.self, from: data), let reason = genericError.error {
                 switch reason {
                 case "not_logged_in":
                     throw LemmyAPIError.notLoggedIn
@@ -162,24 +172,33 @@ public class LemmyAPI {
             throw LemmyAPIError.unexpectedStatusCodeDetails("Unexpected status code from LemmyAPI: (\(code)) \(HTTPURLResponse.localizedString(forStatusCode: code))")
         }
         
-        let decoder = JSONDecoder()
-        
         do {
             let decodedResult = try decoder.decode(T.Response.self, from: data)
             return (decodedResult, response, data)
         } catch {
-            let genericError = try? decoder.decode(GenericError.self, from: data)
-            print(genericError?.prettyPrintedJSONString ?? String(data: data, textEncodingName: nil, default: .utf8)!)
+            if let genericError = try? decoder.decode(GenericError.self, from: data) {
+                print(genericError.prettyPrintedJSONString ?? String(data: data, encoding: .utf8) ?? "Unknown Error")
+            }
+            
+            let decodingError = LemmyAPIError.decoding(
+                message: String(data: data, encoding: .utf8) ?? "",
+                error: error as! DecodingError
+            )
+            
+            print(decodingError)
             
             
             throw error
         }
     }
+#endif
     
+#if !os(Linux)
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> T.Response {
         let (result, _, _) = try await baseRequest(apiRequest, timeout: timeout)
         return result
     }
+#endif
     
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (Result<T.Response, Error>) -> Void) throws -> AnyCancellable {
         let request = try urlRequest(apiRequest, timeout: timeout)
@@ -199,7 +218,7 @@ public class LemmyAPI {
             if !(200..<300).contains(code) {
                 
                 print("unexpectedStatusCode: (\(code)) \(String(data: v.data, encoding: .utf8) ?? "")")
-                if let decoded = try? JSONDecoder().decode(GenericError.self, from: v.data) {
+                if let decoded = try? decoder.decode(GenericError.self, from: v.data) {
                     throw LemmyAPIError.lemmyError(message: decoded.error, code: code)
                 }
                 throw LemmyAPIError.network(code: code, description: String(data: v.data, encoding: .utf8) ?? "")
@@ -209,7 +228,7 @@ public class LemmyAPI {
         //        .retryWithDelay(retries: retries, delay: 2, scheduler: LemmyAPI.dispatchQueue.cx)
         .flatMap { v in
             Just(v.data)
-                .decode(type: T.Response.self, decoder: JSONDecoder())
+                .decode(type: T.Response.self, decoder: decoder)
                 .mapError { error in
                     let decodingError = LemmyAPIError.decoding(
                         message: String(data: v.data, encoding: .utf8) ?? "",
@@ -220,7 +239,7 @@ public class LemmyAPI {
                 }
                 .tryCatch { decodingError in
                     Just(v.data)
-                        .decode(type: GenericError.self, decoder: JSONDecoder())
+                        .decode(type: GenericError.self, decoder: decoder)
                         .mapError { _ in decodingError }
                         .tryMap { throw LemmyAPIError.lemmyError(message: $0.error, code: 200) }
                 }
@@ -284,6 +303,7 @@ public class LemmyAPI {
         }
     }
     
+#if !os(Linux)
     public func uploadRequest(_ apiRequest: UploadImageRequest) async throws -> UploadImageRequest.Response {
         let request = MultipartFormDataRequest(url: pictrsUrl)
         request.addDataField(named: "images[]", data: apiRequest.image, mimeType: "public.image")
@@ -298,22 +318,25 @@ public class LemmyAPI {
         
         try checkResponse(response, data: data)
         
-        let decoder = JSONDecoder()
-        
         do {
             let decodedResult = try decoder.decode(UploadImageRequest.Response.self, from: data)
             return decodedResult
         } catch {
-            let genericError = try? decoder.decode(GenericError.self, from: data)
-            print(genericError?.prettyPrintedJSONString ?? String(data: data, textEncodingName: nil, default: .utf8)!)
-            
-            if let genericError = genericError {
-                throw LemmyAPIError.genericError("lemmy returned an error: \(error). response: \(genericError)")
+            if let genericError = try? decoder.decode(GenericError.self, from: data) {
+                print(genericError.prettyPrintedJSONString ?? String(data: data, encoding: .utf8) ?? "Unknown Error")
             }
             
-            throw error
+            let decodingError = LemmyAPIError.decoding(
+                message: String(data: data, encoding: .utf8) ?? "",
+                error: error as! DecodingError
+            )
+            
+            print(decodingError)
+            
+            throw decodingError
         }
     }
+#endif
     
     public func checkResponse(_ response: URLResponse, data: Data?) throws {
         if let response = response as? HTTPURLResponse,
@@ -336,12 +359,13 @@ public class LemmyAPI {
     
     func checkGenericError(_ data: Data?) -> GenericError? {
         guard let data = data else { return nil }
-        return try? JSONDecoder().decode(GenericError.self, from: data)
+        return try? decoder.decode(GenericError.self, from: data)
     }
 }
 
 extension LemmyAPI {
     
+#if !os(Linux)
     /// finds the correct api endpoint for a lemmy instance base url
     /// throws: `LemmyAPIError.endpointResolveError` if the endpoint could not be resolved
     public static func getApiEndpoint(baseInstanceAddress: String) async throws -> URL {
@@ -396,6 +420,7 @@ extension LemmyAPI {
             return false
         }
     }
+#endif
 }
 
 public enum HTTPMethod: String {

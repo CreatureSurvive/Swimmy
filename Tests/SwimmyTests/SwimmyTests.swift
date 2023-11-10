@@ -38,15 +38,7 @@ final class SwimmyTests: XCTestCase {
         
         for request in requests {
             do {
-                let (response, error) = try await withCheckedThrowingContinuation { continuation in
-                    do {
-                        try api.request(request) { response, error in
-                            continuation.resume(returning: (response, error))
-                        }.store(in: &cancellables)
-                    } catch {
-                        continuation.resume(throwing: error)
-                    }
-                }
+                let (response, error) = await api.request(request, store: &cancellables)
                 if let error = error {
                     throw error
                 }
