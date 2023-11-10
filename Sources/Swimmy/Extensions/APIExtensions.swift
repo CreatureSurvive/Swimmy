@@ -7,6 +7,75 @@
 
 import Foundation
 
+public protocol WithPublished {
+    var published: String { get }
+}
+
+public extension WithPublished {
+    var publishedDate: Date {
+        return Date.date(string: published) ?? .init()
+    }
+}
+
+public protocol WithUpdated {
+    var updated: String? { get }
+}
+
+public extension WithUpdated {
+    var updatedDate: Date? {
+        guard let updated = updated else {
+            return nil
+        }
+        return Date.date(string: updated)
+    }
+}
+
+extension Comment: WithPublished, WithUpdated {}
+extension CommentReply: WithPublished {}
+extension CommentReport: WithPublished, WithUpdated {}
+extension Community: WithPublished, WithUpdated {}
+extension Instance: WithPublished, WithUpdated {}
+extension LocalSite: WithPublished, WithUpdated {}
+extension LocalSiteRateLimit: WithPublished, WithUpdated {}
+extension Person: WithPublished, WithUpdated {}
+extension PersonMention: WithPublished {}
+extension Post: WithPublished, WithUpdated {}
+extension PostReport: WithPublished, WithUpdated {}
+extension PrivateMessage: WithPublished, WithUpdated {}
+extension PrivateMessageReport: WithPublished, WithUpdated {}
+extension RegistrationApplication: WithPublished {}
+extension Site: WithPublished, WithUpdated {}
+extension Tagline: WithPublished, WithUpdated {}
+
+public protocol WithApUrl {
+    var ap_id: String { get }
+}
+
+public extension WithApUrl {
+    var ap_id_url: URL {
+        return URL(string: ap_id)!
+    }
+}
+
+extension Comment: WithApUrl {}
+extension Post: WithApUrl {}
+extension PrivateMessage: WithApUrl {}
+
+public protocol WithActorUrl {
+    var actor_id: String { get }
+}
+
+public extension WithActorUrl {
+    var actor_id_url: URL {
+        return URL(string: actor_id)!
+    }
+}
+
+extension Community: WithActorUrl {}
+extension Person: WithActorUrl {}
+extension Site: WithActorUrl {}
+
+
 //extension URL {
 //    var isImageURL: Bool {
 //        return absoluteString.isImageURL
