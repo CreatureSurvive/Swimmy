@@ -12,19 +12,6 @@ import Combine
 import CombineX
 #endif
 
-public struct SwimmyVersion {
-    public static let version: String = "1.0"
-    public static let build: String = "0"
-    
-    public static var fullVersion: String {
-        "\(version).\(build)"
-    }
-    
-    public static var userAgent: String {
-        "Swimmy/\(fullVersion); (Lemmy Swift API)"
-    }
-}
-
 let decoder = {
     let decoder = JSONDecoder()
 #if os(Linux)
@@ -37,23 +24,6 @@ let decoder = {
 
 /// An instance of the Lemmy API.
 public class LemmyAPI {
-    public var retries: Int = 0
-    public var userAgent = SwimmyVersion.userAgent
-    
-    /// the api endpoint eg https://instance.com/api/v3
-    public let baseUrl: URL
-    /// the pictrs endpoint eg https://instance.com/pictrs/image
-    public let pictrsUrl: URL
-    /// the instance endpoint eg https://instance.com
-    public let instanceUrl: URL
-    
-    private let additionalHeaders: [String: String]
-    private let urlSession: URLSession
-    
-    public static let headers: [String:String] = [
-        "Accept-Encoding" : "gzip",
-        "charset" : "UTF-8"
-    ]
     
     public static let dispatchQueue: DispatchQueue = {
         return DispatchQueue.init(label: "Swimmy.api", qos: .userInitiated, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
@@ -72,6 +42,38 @@ public class LemmyAPI {
         return URLSession(configuration: configuration, delegate: nil, delegateQueue: operationQueue)
     }()
     
+    public static let headers: [String:String] = [
+        "Accept-Encoding" : "gzip",
+        "charset" : "UTF-8"
+    ]
+    
+    public var retries: Int = 0
+    public var userAgent = SwimmyVersion.userAgent
+    
+    /// the api endpoint eg https://instance.com/api/v3
+    public let baseUrl: URL
+    /// the pictrs endpoint eg https://instance.com/pictrs/image
+    public let pictrsUrl: URL
+    /// the instance endpoint eg https://instance.com
+    public let instanceUrl: URL
+    
+    /// an optional set of additional headers that will be sent with api requests
+    /// for instance you can set the User-Agent
+    private let additionalHeaders: [String: String]
+    private let urlSession: URLSession
+    
+    
+    /// initialize the LemmyAPI with an instance api `URL`
+    /// this method does not perform any safety checks to ensure the url is the correct format
+    ///
+    /// - Parameters:
+    ///     - safeBaseUrl: the instance (*https://instance.site/api/v3*).
+    ///     - version: the api version eg: *v3*.
+    ///     - headers: additional headers to send with all requests. eg: User-Agent.
+    ///     - urlSession: optionally specify the URLSession that requests will be sent on
+    ///
+    /// - Throws: `LemmyAPIError.invalidUrl`
+    ///            if `baseUrl` is invalid, or in an unsupported format
     public init(baseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) throws {
         self.baseUrl = baseUrl
         guard
@@ -93,6 +95,14 @@ public class LemmyAPI {
         }
     }
     
+    /// initialize the LemmyAPI with an instance api `URL`
+    /// this method does not perform any safety checks to ensure the url is the correct format
+    ///
+    /// - Parameters:
+    ///     - safeBaseUrl: the instance (*https://instance.site/api/v3*).
+    ///     - version: the api version eg: *v3*.
+    ///     - headers: additional headers to send with all requests. eg: User-Agent.
+    ///     - urlSession: optionally specify the URLSession that requests will be sent on
     public init(safeBaseUrl: URL, headers: [String: String]? = nil, urlSession: URLSession = session) {
         let rootUrl = safeBaseUrl.getRootUrl
         self.baseUrl = safeBaseUrl
@@ -105,6 +115,16 @@ public class LemmyAPI {
         }
     }
     
+    /// initialize the LemmyAPI with an instance string
+    ///
+    /// - Parameters:
+    ///     - baseUrl: the instance (*https://instance.site* | *instance.site*).
+    ///     - version: the api version eg: *v3*.
+    ///     - headers: additional headers to send with all requests. eg: User-Agent.
+    ///     - urlSession: optionally specify the URLSession that requests will be sent on
+    ///
+    /// - Throws: `LemmyAPIError.invalidUrl`
+    ///            if `baseUrl` is invalid, or in an unsupported format
     public convenience init(baseUrl: String, version: String = "v3", headers: [String: String]? = nil, urlSession: URLSession = session) throws {
         var baseUrl = baseUrl.lowercased()
         let regex = "https?://"
@@ -121,6 +141,14 @@ public class LemmyAPI {
         try self.init(baseUrl: apiURL, headers: headers, urlSession: urlSession)
     }
     
+    /// builds a URLRequest from an instance of `APIRequest`
+    ///
+    /// - Parameters:
+    ///     - apiRequest: the `APIRequest` object to build the request from
+    ///     - timeout: optionally specify a timeout for the request, default value is `10` seconds.
+    ///
+    /// - Throws: `EncodingError.invalidValue(_:_:)`
+    ///            if `apiRequest` contains data that cannot be encoded using the `JSONEncoder`
     public func urlRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) throws -> URLRequest {
         var request = URLRequest(url: baseUrl.appending(path: T.path))
         request.httpMethod = T.httpMethod.rawValue
@@ -154,6 +182,18 @@ public class LemmyAPI {
     }
     
 #if !os(Linux)
+    /// performs an `APIRequest`
+    ///
+    /// - Returns: a `Tuple` with the results
+    ///            - response: `APIRequest.Response` the decoded response
+    ///            - urlResponse: `URLResponse`
+    ///            - data: the raw `Data` from the `URLRequest`
+    ///
+    /// - Parameters:
+    ///     - apiRequest: the `APIRequest` object to build the request from
+    ///     - timeout: optionally specify a timeout for the request, default value is `10` seconds.
+    ///
+    /// - Throws: `LemmyAPIError`
     public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (T.Response, URLResponse, Data) {
         let request = try urlRequest(apiRequest, timeout: timeout)
         print("LemmyAPI request: \(request.debugDescription)")
@@ -191,13 +231,12 @@ public class LemmyAPI {
             throw error
         }
     }
-#endif
-    
-#if !os(Linux)
+
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> T.Response {
         let (result, _, _) = try await baseRequest(apiRequest, timeout: timeout)
         return result
     }
+    
 #endif
     
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (Result<T.Response, Error>) -> Void) throws -> AnyCancellable {
@@ -367,7 +406,8 @@ extension LemmyAPI {
     
 #if !os(Linux)
     /// finds the correct api endpoint for a lemmy instance base url
-    /// throws: `LemmyAPIError.endpointResolveError` if the endpoint could not be resolved
+    /// - Throws: `LemmyAPIError.endpointResolveError` if the endpoint could not be resolved
+    /// - Returns: the url of the resolved api endpoint of the `baseInstanceAddress`
     public static func getApiEndpoint(baseInstanceAddress: String) async throws -> URL {
         var validAddress: URL?
         
@@ -402,7 +442,7 @@ extension LemmyAPI {
     }
 
     /// takes a url that points to a valid lemmy api endpoint that responds to GET requests
-    /// returns true if the endpoint responds with a status of 200
+    /// - Returns: true if the endpoint responds with a status of 200
     public static func checkIfEndpointExists(at url: URL) async -> Bool {
         
         var request: URLRequest = URLRequest(url: url)
@@ -423,54 +463,30 @@ extension LemmyAPI {
 #endif
 }
 
-public enum HTTPMethod: String {
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
+enum AsyncError: Error {
+    case finishedWithoutValue
 }
 
-public enum LemmyAPIError: Error {
-    case network(code: Int, description: String)
-    case lemmyError(message: String?, code: Int)
-    case decoding(message: String, error: DecodingError)
-    case unexpectedStatusCode(Int)
-    case unexpectedStatusCodeDetails(String)
-    case genericError(String)
-    case notLoggedIn
-    case invalidUrl
-    case endpointResolveError(String)
-}
-
-public struct GenericError: Codable {
-    public let error: String?
-}
-
-extension LemmyAPIError: LocalizedError {
-    public var errorDescription: String? {
-        switch self {
-        case .unexpectedStatusCode(let status):
-            return "lemmy returned an unexpected status: \(status)"
-        case .unexpectedStatusCodeDetails(let details):
-            return "lemmy returned an unexpected status: \(details)"
-        case .genericError(let error):
-            return "lemmyAPI encountered an unexpected error: \(error)"
-        case .notLoggedIn:
-            return "user not logged in, or session expired"
-        case .network(let code, let description):
-            return "LemmyApi received a network error: code \(code), reason: \(description)"
-        case .lemmyError(let message, let code):
-            switch message {
-            case "not_logged_in":
-                return "user not logged in, or session expired"
-            default:
-                return "LemmyApi lemmy returned an error: code \(code), reason: \(message ?? "unknown")"
-            }
-        case .decoding(let message, let error):
-            return "LemmyApi could not decode response: \(message), reason: \(error.localizedDescription)"
-        case .invalidUrl:
-            return "lemmyAPI base url is invalid"
-        case .endpointResolveError:
-            return "Failed to resolve endpoint: check the instance url"
+extension AnyPublisher {
+    func async() async throws -> Output {
+        try await withCheckedThrowingContinuation { continuation in
+            var cancellable: AnyCancellable?
+            var finishedWithoutValue = true
+            cancellable = first()
+                .sink { result in
+                    switch result {
+                    case .finished:
+                        if finishedWithoutValue {
+                            continuation.resume(throwing: AsyncError.finishedWithoutValue)
+                        }
+                    case let .failure(error):
+                        continuation.resume(throwing: error)
+                    }
+                    cancellable?.cancel()
+                } receiveValue: { value in
+                    finishedWithoutValue = false
+                    continuation.resume(with: .success(value))
+                }
         }
     }
 }

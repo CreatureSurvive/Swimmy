@@ -17,7 +17,7 @@ final class SwimmyTests: XCTestCase {
         
         for request in requests {
             do {
-                let response = try await api.request(request)
+                _ = try await api.request(request)
             } catch {
                 XCTFail(
                     """

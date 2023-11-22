@@ -17,3 +17,9 @@ public protocol APIRequest: Codable, Hashable {
 
 public protocol APIResponse: Codable {
 }
+
+public enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+}
