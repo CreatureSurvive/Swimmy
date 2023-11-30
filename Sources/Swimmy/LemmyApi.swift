@@ -31,6 +31,7 @@ public class LemmyAPI {
     
     public static let operationQueue: OperationQueue = {
         let queue = OperationQueue.init()
+        queue.name = "com.creaturecoding.swimmy.api"
         queue.maxConcurrentOperationCount = 10
         queue.qualityOfService = .default
         queue.underlyingQueue = dispatchQueue

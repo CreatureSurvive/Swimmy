@@ -19,14 +19,18 @@ public struct LocalUserSettings: Codable, Identifiable, Hashable {
     public let send_notifications_to_email: Bool
     public let show_avatars: Bool
     public let show_bot_accounts: Bool
-    public let show_new_post_notifs: Bool
+    public let show_new_post_notifs: Bool? // v0.19 removed
     public let show_nsfw: Bool
     public let show_read_posts: Bool
     public let show_scores: Bool
     public let theme: String
-    public let validator_time: String
+    public let validator_time: String? // v0.19 removed
+    public let enable_keyboard_navigation: Bool? // v0.19 added
+    public let enable_animated_images: Bool? // v0.19 added
+    public let totp_2fa_enabled: Bool? // v0.19 added
+    public let admin: Bool? // v0.19 added
     
-    public init(accepted_application: Bool, default_listing_type: ListingType, default_sort_type: SortType, email: String? = nil, email_verified: Bool, id: Int, interface_language: String, person_id: Int, send_notifications_to_email: Bool, show_avatars: Bool, show_bot_accounts: Bool, show_new_post_notifs: Bool, show_nsfw: Bool, show_read_posts: Bool, show_scores: Bool, theme: String, validator_time: String) {
+    public init(accepted_application: Bool, default_listing_type: ListingType, default_sort_type: SortType, email: String? = nil, email_verified: Bool, id: Int, interface_language: String, person_id: Int, send_notifications_to_email: Bool, show_avatars: Bool, show_bot_accounts: Bool, show_new_post_notifs: Bool? = nil, show_nsfw: Bool, show_read_posts: Bool, show_scores: Bool, theme: String, validator_time: String? = nil, enable_keyboard_navigation: Bool? = nil, enable_animated_images: Bool? = nil, totp_2fa_enabled: Bool? = nil, admin: Bool? = nil) {
         self.accepted_application = accepted_application
         self.default_listing_type = default_listing_type
         self.default_sort_type = default_sort_type
@@ -44,5 +48,9 @@ public struct LocalUserSettings: Codable, Identifiable, Hashable {
         self.show_scores = show_scores
         self.theme = theme
         self.validator_time = validator_time
+        self.enable_keyboard_navigation = enable_keyboard_navigation
+        self.enable_animated_images = enable_animated_images
+        self.totp_2fa_enabled = totp_2fa_enabled
+        self.admin = admin
     }
 }

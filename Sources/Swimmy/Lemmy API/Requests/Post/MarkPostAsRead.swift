@@ -15,12 +15,14 @@ public struct MarkPostAsReadRequest: APIRequest {
     public var jwt: String? { return auth }
 
 	public let auth: String
-	public let post_id: Int
+	public let post_id: Int? // v0.19 optional
+    public let post_ids: [Int]? // v0.19 added
 	public let read: Bool
 
-	public init(auth: String, post_id: Int, read: Bool) {
+    public init(auth: String, post_id: Int? = nil, post_ids: [Int]? = nil, read: Bool) {
 		self.auth = auth
 		self.post_id = post_id
+        self.post_ids = post_ids
 		self.read = read
 	}
 }

@@ -16,12 +16,14 @@ public struct AddAdminRequest: APIRequest {
 
 	public let added: Bool
 	public let auth: String
-	public let person_id: Int
+	public let person_id: Int? // v0.19 removed
+    public let local_user_id: Int? // v0.19 added
 
-	public init(added: Bool, auth: String, person_id: Int) {
+    public init(added: Bool, auth: String, person_id: Int? = nil, local_user_id: Int? = nil) {
 		self.added = added
 		self.auth = auth
 		self.person_id = person_id
+        self.local_user_id = local_user_id
 	}
 }
 public struct AddAdminResponse: APIResponse {

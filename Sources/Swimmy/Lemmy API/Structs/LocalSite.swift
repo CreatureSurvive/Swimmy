@@ -21,6 +21,7 @@ public struct LocalSite: Codable, Identifiable, Hashable {
     public let federation_debug: Bool? // removed in v0.18
     public let federation_enabled: Bool
     public let federation_worker_count: Int?
+    public let federation_signed_fetch: Bool?  // v0.19 added
     public let hide_modlog_mod_names: Bool
     public let id: Int
     public let legal_information: String?
@@ -34,7 +35,7 @@ public struct LocalSite: Codable, Identifiable, Hashable {
     public let slur_filter_regex: String?
     public let updated: String?
     
-    public init(actor_name_max_length: Int, application_email_admins: Bool, application_question: String? = nil, captcha_difficulty: String, captcha_enabled: Bool, community_creation_admin_only: Bool, default_post_listing_type: String, default_theme: String, enable_downvotes: Bool, enable_nsfw: Bool, federation_debug: Bool? = nil, federation_enabled: Bool, federation_worker_count: Int? = nil, hide_modlog_mod_names: Bool, id: Int, legal_information: String? = nil, private_instance: Bool, published: String, registration_mode: RegistrationMode, reports_email_admins: Bool, require_email_verification: Bool, site_id: Int, site_setup: Bool, slur_filter_regex: String? = nil, updated: String? = nil) {
+    public init(actor_name_max_length: Int, application_email_admins: Bool, application_question: String? = nil, captcha_difficulty: String, captcha_enabled: Bool, community_creation_admin_only: Bool, default_post_listing_type: String, default_theme: String, enable_downvotes: Bool, enable_nsfw: Bool, federation_debug: Bool? = nil, federation_enabled: Bool, federation_worker_count: Int? = nil, federation_signed_fetch: Bool? = nil, hide_modlog_mod_names: Bool, id: Int, legal_information: String? = nil, private_instance: Bool, published: String, registration_mode: RegistrationMode, reports_email_admins: Bool, require_email_verification: Bool, site_id: Int, site_setup: Bool, slur_filter_regex: String? = nil, updated: String? = nil) {
         self.actor_name_max_length = actor_name_max_length
         self.application_email_admins = application_email_admins
         self.application_question = application_question
@@ -48,6 +49,7 @@ public struct LocalSite: Codable, Identifiable, Hashable {
         self.federation_debug = federation_debug
         self.federation_enabled = federation_enabled
         self.federation_worker_count = federation_worker_count
+        self.federation_signed_fetch = federation_signed_fetch
         self.hide_modlog_mod_names = hide_modlog_mod_names
         self.id = id
         self.legal_information = legal_information

@@ -16,10 +16,12 @@ public struct DeleteAccountRequest: APIRequest {
 
 	public let auth: String
 	public let password: String
+    public let delete_content: Bool? // v0.19 added
 
-	public init(auth: String, password: String) {
+    public init(auth: String, password: String, delete_content: Bool? = nil) {
 		self.auth = auth
 		self.password = password
+        self.delete_content = delete_content
 	}
 }
 public struct DeleteAccountResponse: APIResponse {

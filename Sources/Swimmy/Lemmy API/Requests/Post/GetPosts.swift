@@ -28,8 +28,9 @@ public struct GetPostsRequest: APIRequest {
 	public let saved_only: Bool?
 	public let sort: SortType?
 	public let type_: ListingType?
+    public let page_cursor: String?
 
-	public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, page: Int? = nil, saved_only: Bool? = nil, sort: SortType? = nil, type_: ListingType? = nil) {
+    public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, page: Int? = nil, saved_only: Bool? = nil, sort: SortType? = nil, type_: ListingType? = nil, page_cursor: String? = nil) {
 		self.auth = auth
 		self.community_id = community_id
 		self.community_name = community_name
@@ -38,8 +39,10 @@ public struct GetPostsRequest: APIRequest {
 		self.saved_only = saved_only
 		self.sort = sort
 		self.type_ = type_
+        self.page_cursor = page_cursor
 	}
 }
 public struct GetPostsResponse: APIResponse {
 	public let posts: [PostView]
+    public let next_page: String?
 }

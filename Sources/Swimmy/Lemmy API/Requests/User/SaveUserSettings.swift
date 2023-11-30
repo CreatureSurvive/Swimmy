@@ -34,8 +34,9 @@ public struct SaveUserSettingsRequest: APIRequest {
 	public let show_read_posts: Bool?
 	public let show_scores: Bool?
 	public let theme: String?
+    public let post_listing_mode: PostListingMode?
 
-	public init(auth: String, avatar: String? = nil, banner: String? = nil, bio: String? = nil, bot_account: Bool? = nil, default_listing_type: ListingType? = nil, default_sort_type: SortType? = nil, discussion_languages: [Int]? = nil, display_name: String? = nil, email: String? = nil, interface_language: String? = nil, matrix_user_id: String? = nil, send_notifications_to_email: Bool? = nil, show_avatars: Bool? = nil, show_bot_accounts: Bool? = nil, show_new_post_notifs: Bool? = nil, show_nsfw: Bool? = nil, show_read_posts: Bool? = nil, show_scores: Bool? = nil, theme: String? = nil) {
+    public init(auth: String, avatar: String? = nil, banner: String? = nil, bio: String? = nil, bot_account: Bool? = nil, default_listing_type: ListingType? = nil, default_sort_type: SortType? = nil, discussion_languages: [Int]? = nil, display_name: String? = nil, email: String? = nil, interface_language: String? = nil, matrix_user_id: String? = nil, send_notifications_to_email: Bool? = nil, show_avatars: Bool? = nil, show_bot_accounts: Bool? = nil, show_new_post_notifs: Bool? = nil, show_nsfw: Bool? = nil, show_read_posts: Bool? = nil, show_scores: Bool? = nil, theme: String? = nil, post_listing_mode: PostListingMode? = nil) {
 		self.auth = auth
 		self.avatar = avatar
 		self.banner = banner
@@ -56,5 +57,6 @@ public struct SaveUserSettingsRequest: APIRequest {
 		self.show_read_posts = show_read_posts
 		self.show_scores = show_scores
 		self.theme = theme
+        self.post_listing_mode = post_listing_mode
 	}
 }

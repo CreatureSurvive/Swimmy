@@ -10,7 +10,7 @@ import Foundation
 public struct LocalSiteRateLimit: Codable, Identifiable, Hashable {
     public let comment: Int
     public let comment_per_second: Int
-    public let id: Int
+    public let id: Int? // v0.19 removed
     public let image: Int
     public let image_per_second: Int
     public let local_site_id: Int
@@ -24,8 +24,10 @@ public struct LocalSiteRateLimit: Codable, Identifiable, Hashable {
     public let search: Int
     public let search_per_second: Int
     public let updated: String?
+    public let import_user_settings: Int?
+    public let import_user_settings_per_second: Int?
     
-    public init(comment: Int, comment_per_second: Int, id: Int, image: Int, image_per_second: Int, local_site_id: Int, message: Int, message_per_second: Int, post: Int, post_per_second: Int, published: String, register: Int, register_per_second: Int, search: Int, search_per_second: Int, updated: String? = nil) {
+    public init(comment: Int, comment_per_second: Int, id: Int?, image: Int, image_per_second: Int, local_site_id: Int, message: Int, message_per_second: Int, post: Int, post_per_second: Int, published: String, register: Int, register_per_second: Int, search: Int, search_per_second: Int, updated: String? = nil, import_user_settings: Int? = nil, import_user_settings_per_second: Int? = nil) {
         self.comment = comment
         self.comment_per_second = comment_per_second
         self.id = id
@@ -42,5 +44,7 @@ public struct LocalSiteRateLimit: Codable, Identifiable, Hashable {
         self.search = search
         self.search_per_second = search_per_second
         self.updated = updated
+        self.import_user_settings = import_user_settings
+        self.import_user_settings_per_second = import_user_settings_per_second
     }
 }

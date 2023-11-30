@@ -10,7 +10,7 @@ import Foundation
 public struct CommunityAggregates: Codable, Identifiable, Hashable {
     public let comments: Int
     public let community_id: Int
-    public let id: Int
+    public let id: Int? // v0.19 removed
     public let posts: Int
     public let subscribers: Int
     public let users_active_day: Int
@@ -18,7 +18,7 @@ public struct CommunityAggregates: Codable, Identifiable, Hashable {
     public let users_active_month: Int
     public let users_active_week: Int
     
-    public init(comments: Int, community_id: Int, id: Int, posts: Int, subscribers: Int, users_active_day: Int, users_active_half_year: Int, users_active_month: Int, users_active_week: Int) {
+    public init(comments: Int, community_id: Int, id: Int?, posts: Int, subscribers: Int, users_active_day: Int, users_active_half_year: Int, users_active_month: Int, users_active_week: Int) {
         self.comments = comments
         self.community_id = community_id
         self.id = id
