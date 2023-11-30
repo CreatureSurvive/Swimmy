@@ -195,7 +195,7 @@ public class LemmyAPI {
     ///     - timeout: optionally specify a timeout for the request, default value is `10` seconds.
     ///
     /// - Throws: `LemmyAPIError`
-    public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (T.Response, URLResponse, Data) {
+    public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (URLResponse, Data) {
         let request = try urlRequest(apiRequest, timeout: timeout)
         print("LemmyAPI request: \(request.debugDescription)")
         let (data, response) = try await urlSession.data(for: request)
@@ -213,29 +213,35 @@ public class LemmyAPI {
             throw LemmyAPIError.unexpectedStatusCodeDetails("Unexpected status code from LemmyAPI: (\(code)) \(HTTPURLResponse.localizedString(forStatusCode: code))")
         }
         
-        do {
-            let decodedResult = try decoder.decode(T.Response.self, from: data)
-            return (decodedResult, response, data)
-        } catch {
-            if let genericError = try? decoder.decode(GenericError.self, from: data) {
-                print(genericError.prettyPrintedJSONString ?? String(data: data, encoding: .utf8) ?? "Unknown Error")
-            }
-            
-            let decodingError = LemmyAPIError.decoding(
-                message: String(data: data, encoding: .utf8) ?? "",
-                error: error as! DecodingError
-            )
-            
-            print(decodingError)
-            
-            
-            throw error
-        }
+        return (response, data)
     }
 
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> T.Response {
-        let (result, _, _) = try await baseRequest(apiRequest, timeout: timeout)
-        return result
+        let (_, data) = try await baseRequest(apiRequest, timeout: timeout)
+        
+        do {
+            let decodedResult = try decoder.decode(T.Response.self, from: data)
+            return decodedResult
+        } catch {
+            throw checkDecodingError(error, data: data)
+        }
+    }
+    
+    public func statusRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> Bool {
+        let (_, data) = try await baseRequest(apiRequest, timeout: timeout)
+        
+        do {
+            let decodedResult = try decoder.decode(T.Response.self, from: data)
+            return true
+        } catch {
+            do {
+                let decodedResult = try decoder.decode(SuccessResponse.self, from: data)
+                return decodedResult.success
+            } catch {
+                throw checkDecodingError(error, data: data)
+            }
+            throw checkDecodingError(error, data: data)
+        }
     }
     
 #endif
@@ -400,6 +406,21 @@ public class LemmyAPI {
     func checkGenericError(_ data: Data?) -> GenericError? {
         guard let data = data else { return nil }
         return try? decoder.decode(GenericError.self, from: data)
+    }
+    
+    private func checkDecodingError(_ error: Error, data: Data) -> Error {
+        if let genericError = try? decoder.decode(GenericError.self, from: data) {
+            print(genericError.prettyPrintedJSONString ?? String(data: data, encoding: .utf8) ?? "Unknown Error")
+        }
+        
+        let decodingError = LemmyAPIError.decoding(
+            message: String(data: data, encoding: .utf8) ?? "",
+            error: error as! DecodingError
+        )
+        
+        print(decodingError)
+        
+        return error
     }
 }
 
