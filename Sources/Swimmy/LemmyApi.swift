@@ -25,6 +25,10 @@ let decoder = {
 /// An instance of the Lemmy API.
 public class LemmyAPI {
     
+    private static let redact_keys = [
+        "auth", "password", "new_password", "new_password_verify", "old_password", "totp_2fa_token", "captcha_answer", "captcha_uuid"
+    ]
+    
     public static let dispatchQueue: DispatchQueue = {
         return DispatchQueue.init(label: "Swimmy.api", qos: .userInitiated, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
     }()
@@ -197,7 +201,7 @@ public class LemmyAPI {
     /// - Throws: `LemmyAPIError`
     public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (URLResponse, Data) {
         let request = try urlRequest(apiRequest, timeout: timeout)
-        if let redactedUrl = request.url?.redacting(queryItems: ["auth", "password"]) {
+        if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
         let (data, response) = try await urlSession.data(for: request)
@@ -249,7 +253,7 @@ public class LemmyAPI {
     
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (Result<T.Response, Error>) -> Void) throws -> AnyCancellable {
         let request = try urlRequest(apiRequest, timeout: timeout)
-        if let redactedUrl = request.url?.redacting(queryItems: ["auth", "password"]) {
+        if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
 #if canImport(FoundationNetworking)

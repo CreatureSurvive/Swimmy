@@ -17,7 +17,7 @@ extension URL {
         
         urlComponents.queryItems = urlComponents.queryItems?.map({
             guard queryItems.contains($0.name) else { return $0 }
-            return URLQueryItem(name: $0.name, value: "PRIVATE")
+            return URLQueryItem(name: $0.name, value: "_private_")
         })
         
         return urlComponents.url
