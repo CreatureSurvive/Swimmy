@@ -197,7 +197,9 @@ public class LemmyAPI {
     /// - Throws: `LemmyAPIError`
     public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (URLResponse, Data) {
         let request = try urlRequest(apiRequest, timeout: timeout)
-        print("LemmyAPI request: \(request.debugDescription)")
+        if let redactedUrl = request.url?.redacting(queryItems: ["auth", "password"]) {
+            SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
+        }
         let (data, response) = try await urlSession.data(for: request)
         
         let code = (response as! HTTPURLResponse).statusCode
@@ -231,7 +233,7 @@ public class LemmyAPI {
         let (_, data) = try await baseRequest(apiRequest, timeout: timeout)
         
         do {
-            let decodedResult = try decoder.decode(T.Response.self, from: data)
+            _ = try decoder.decode(T.Response.self, from: data)
             return true
         } catch {
             do {
@@ -240,7 +242,6 @@ public class LemmyAPI {
             } catch {
                 throw checkDecodingError(error, data: data)
             }
-            throw checkDecodingError(error, data: data)
         }
     }
     
@@ -248,8 +249,9 @@ public class LemmyAPI {
     
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (Result<T.Response, Error>) -> Void) throws -> AnyCancellable {
         let request = try urlRequest(apiRequest, timeout: timeout)
-        print("LemmyAPI request: \(request.debugDescription)")
-        
+        if let redactedUrl = request.url?.redacting(queryItems: ["auth", "password"]) {
+            SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
+        }
 #if canImport(FoundationNetworking)
         let session = urlSession.cx
 #else
@@ -263,7 +265,7 @@ public class LemmyAPI {
             let code = (v.response as! HTTPURLResponse).statusCode
             if !(200..<300).contains(code) {
                 
-                print("unexpectedStatusCode: (\(code)) \(String(data: v.data, encoding: .utf8) ?? "")")
+                SwimmyLogger.log("unexpectedStatusCode: (\(code)) \(String(data: v.data, encoding: .utf8) ?? "")", logType: .error)
                 if let decoded = try? decoder.decode(GenericError.self, from: v.data) {
                     throw LemmyAPIError.lemmyError(message: decoded.error, code: code)
                 }
@@ -280,7 +282,7 @@ public class LemmyAPI {
                         message: String(data: v.data, encoding: .utf8) ?? "",
                         error: error as! DecodingError
                     )
-                    print("\(error)")
+                    SwimmyLogger.log("LemmyAPI error decoding response: \(error)", logType: .error)
                     return decodingError
                 }
                 .tryCatch { decodingError in
@@ -359,7 +361,7 @@ public class LemmyAPI {
             urlRequest.setValue( "Bearer \(auth)", forHTTPHeaderField: "Authorization")
         }
         
-        print("LemmyAPI request: \(urlRequest.debugDescription)")
+        SwimmyLogger.log("LemmyAPI request: \(urlRequest.debugDescription)", logType: .info)
         let (data, response) = try await urlSession.data(for: urlRequest)
         
         try checkResponse(response, data: data)
@@ -369,7 +371,7 @@ public class LemmyAPI {
             return decodedResult
         } catch {
             if let genericError = try? decoder.decode(GenericError.self, from: data) {
-                print(genericError.prettyPrintedJSONString ?? String(data: data, encoding: .utf8) ?? "Unknown Error")
+                SwimmyLogger.log("LemmyAPI generic error: \(genericError.json)", logType: .error)
             }
             
             let decodingError = LemmyAPIError.decoding(
@@ -377,7 +379,7 @@ public class LemmyAPI {
                 error: error as! DecodingError
             )
             
-            print(decodingError)
+            SwimmyLogger.log("LemmyAPI error decoding response: \(decodingError)", logType: .error)
             
             throw decodingError
         }
@@ -410,7 +412,7 @@ public class LemmyAPI {
     
     private func checkDecodingError(_ error: Error, data: Data) -> Error {
         if let genericError = try? decoder.decode(GenericError.self, from: data) {
-            print(genericError.prettyPrintedJSONString ?? String(data: data, encoding: .utf8) ?? "Unknown Error")
+            SwimmyLogger.log("LemmyAPI generic error: \(genericError.json)", logType: .error)
         }
         
         let decodingError = LemmyAPIError.decoding(
@@ -418,7 +420,7 @@ public class LemmyAPI {
             error: error as! DecodingError
         )
         
-        print(decodingError)
+        SwimmyLogger.log("LemmyAPI error decoding response: \(decodingError)", logType: .error)
         
         return error
     }
@@ -447,11 +449,11 @@ extension LemmyAPI {
         
         for address in possibleInstanceAddresses {
             if await checkIfEndpointExists(at: address) {
-                print("\(address) is valid")
+                SwimmyLogger.log("\(address) is valid")
                 validAddress = address.deletingLastPathComponent()
                 break
             } else {
-                print("\(address) is invalid")
+                SwimmyLogger.log("\(address) is invalid")
                 continue
             }
         }
@@ -475,7 +477,7 @@ extension LemmyAPI {
             let (_, response) = try await session.data(for: request)
             let httpResponse: HTTPURLResponse = response as! HTTPURLResponse
             
-            print("Response for endpoint \(url) is \(httpResponse.statusCode)")
+            SwimmyLogger.log("Response for endpoint \(url) is \(httpResponse.statusCode)")
             
             return  httpResponse.statusCode == 200
         } catch {

@@ -9,6 +9,20 @@ import Foundation
 
 extension URL {
     
+    func redacting(queryItems: [String]) -> URL? {
+        guard var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            // URL is not conforming to RFC 3986 (maybe it is only conforming to RFC 1808, RFC 1738, and RFC 2732)
+            return nil
+        }
+        
+        urlComponents.queryItems = urlComponents.queryItems?.map({
+            guard queryItems.contains($0.name) else { return $0 }
+            return URLQueryItem(name: $0.name, value: "PRIVATE")
+        })
+        
+        return urlComponents.url
+    }
+    
     /// Returns a new URL by adding the query items, or nil if the URL doesn't support it.
     /// URL must conform to RFC 3986.
     func appending(queryItems: [URLQueryItem]) -> URL? {

@@ -15,6 +15,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/cx-org/CXShim", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/lavalleeale/CombineX", branch: "master"),
+        .package(url: "https://github.com/apple/swift-log", .upToNextMajor(from: "1.0.0")),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,6 +25,7 @@ let package = Package(
             dependencies: [
                 .product(name: "CXShim", package: "CXShim"),
                 .product(name: "CombineX", package: "CombineX"),
+                .product(name: "Logging", package: "swift-log"),
             ],
             swiftSettings: [.enableUpcomingFeature("BareSlashRegexLiterals")]
         ),
