@@ -20,14 +20,14 @@ public struct ListPostReportsRequest: APIRequest {
 	public let limit: Int?
 	public let page: Int?
 	/// Only shows the unresolved reports.
-	public let unresovled_only: Bool?
+	public let unresolved_only: Bool?
 
-	public init(auth: String, community_id: Int? = nil, limit: Int? = nil, page: Int? = nil, unresovled_only: Bool? = nil) {
+	public init(auth: String, community_id: Int? = nil, limit: Int? = nil, page: Int? = nil, unresolved_only: Bool? = nil) {
 		self.auth = auth
 		self.community_id = community_id
 		self.limit = limit
 		self.page = page
-		self.unresovled_only = unresovled_only
+		self.unresolved_only = unresolved_only
 	}
 }
 public struct ListPostReportsResponse: APIResponse {
