@@ -15,6 +15,8 @@ public enum SortType: String, Codable, CustomStringConvertible, CaseIterable {
 	case new = "New"
 	case newComments = "NewComments"
 	case old = "Old"
+    case controversial = "Controversial"
+    case scaled =  "Scaled"
 	case topAll = "TopAll"
 	case topDay = "TopDay"
 	case topMonth = "TopMonth"
@@ -39,6 +41,8 @@ public enum SortType: String, Codable, CustomStringConvertible, CaseIterable {
         case .new: return "New"
         case .newComments: return "New Comments"
         case .old: return "Old"
+        case .controversial: return "Controversial"
+        case .scaled: return "Scaled"
         case .topAll: return "Top All"
         case .topDay: return "Top Day"
         case .topMonth: return "Top Month"
@@ -65,6 +69,14 @@ public enum SortType: String, Codable, CustomStringConvertible, CaseIterable {
         return [.hot, .new, .active, .newComments, .mostComments, .old]
     }
     
+    public static var allTypesV19: [SortType] {
+        return [.hot, .new, .active, .newComments, .mostComments, .old, .controversial, .scaled, .topAll, .topHour, .topSixHour, .topTwelveHour, .topDay, .topWeek, .topMonth, .topThreeMonths, .topNineMonths, .topYear]
+    }
+    
+    public static var allNonTopTypesV19: [SortType] {
+        return [.hot, .new, .active, .newComments, .mostComments, .old, .controversial, .scaled]
+    }
+    
     public static var allTopTypes: [SortType] {
         return [.topAll, .topHour, .topSixHour, .topTwelveHour, .topDay, .topWeek, .topMonth, .topThreeMonths, .topNineMonths, .topYear]
     }
@@ -77,6 +89,8 @@ public enum SortType: String, Codable, CustomStringConvertible, CaseIterable {
         case .new: return "clock"
         case .newComments: return "text.badge.plus"
         case .old: return "arrow.down"
+        case .controversial: return "arrow.up.arrow.down"
+        case .scaled: return "scale.3d"
         case .topAll: return "arrow.up"
         case .topDay: return "calendar"
         case .topMonth: return "calendar"
