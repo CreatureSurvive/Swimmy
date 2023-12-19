@@ -209,3 +209,9 @@ extension PersonView: Identifiable {
         person.id
     }
 }
+
+public extension GetUnreadCountResponse {
+    var total: Int {
+        replies + mentions + private_messages
+    }
+}

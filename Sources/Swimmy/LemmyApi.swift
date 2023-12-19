@@ -210,7 +210,7 @@ public class LemmyAPI {
         if !(200..<300).contains(code) {
             if let genericError = try? decoder.decode(GenericError.self, from: data), let reason = genericError.error {
                 switch reason {
-                case "not_logged_in":
+                case "not_logged_in", "incorrect_login":
                     throw LemmyAPIError.notLoggedIn
                 default:
                     throw LemmyAPIError.lemmyError(message: genericError.error, code: code)

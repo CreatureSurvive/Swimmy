@@ -22,6 +22,7 @@ public enum LemmyAPIError: Error {
 
 public struct GenericError: Codable {
     public let error: String?
+    public let message: String?
 }
 
 extension LemmyAPIError: LocalizedError {
@@ -39,7 +40,7 @@ extension LemmyAPIError: LocalizedError {
             return "LemmyApi received a network error: code \(code), reason: \(description)"
         case .lemmyError(let message, let code):
             switch message {
-            case "not_logged_in":
+            case "not_logged_in", "incorrect_login":
                 return "user not logged in, or session expired"
             default:
                 return "LemmyApi lemmy returned an error: code \(code), reason: \(message ?? "unknown")"
