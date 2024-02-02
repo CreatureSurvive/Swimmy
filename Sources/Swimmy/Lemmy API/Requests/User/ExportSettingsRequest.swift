@@ -1,5 +1,5 @@
 //
-//  ExportSettings.swift
+//  ExportSettingsRequest.swift
 //  
 //
 //  Created by Dana Buehre on 2/2/24.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ExportSettings: APIRequest {
+public struct ExportSettingsRequest: APIRequest {
     public typealias Response = ExportSettingsResponse
     
     public static let httpMethod: HTTPMethod = .get
