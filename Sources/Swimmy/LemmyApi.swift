@@ -146,6 +146,26 @@ public class LemmyAPI {
         try self.init(baseUrl: apiURL, headers: headers, urlSession: urlSession)
     }
     
+    public func urlRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) -> URLRequest {
+        var request = URLRequest(url: baseUrl.appending(path: path))
+        request.httpMethod = method.rawValue
+        request.timeoutInterval = timeout
+        
+        for (key, value) in additionalHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        request.httpBody = body?.data(using: .utf8)
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        
+        if let auth = auth {
+            request.setValue( "Bearer \(auth)", forHTTPHeaderField: "Authorization")
+        }
+        
+        request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+        return request
+    }
+    
     /// builds a URLRequest from an instance of `APIRequest`
     ///
     /// - Parameters:
@@ -155,19 +175,13 @@ public class LemmyAPI {
     /// - Throws: `EncodingError.invalidValue(_:_:)`
     ///            if `apiRequest` contains data that cannot be encoded using the `JSONEncoder`
     public func urlRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) throws -> URLRequest {
-        var request = URLRequest(url: baseUrl.appending(path: T.path))
-        request.httpMethod = T.httpMethod.rawValue
-        request.timeoutInterval = timeout
-        
-        for (key, value) in additionalHeaders {
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-        
-        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        
-        if let auth = apiRequest.jwt {
-            request.setValue( "Bearer \(auth)", forHTTPHeaderField: "Authorization")
-        }
+        var request = urlRequest(
+            path: T.path,
+            body: nil,
+            contentType: "application/json",
+            auth: apiRequest.jwt,
+            method: T.httpMethod,
+            timeout: timeout)
         
         if T.httpMethod == .get {
             let mirror = Mirror(reflecting: apiRequest)
@@ -182,25 +196,13 @@ public class LemmyAPI {
             let encoder = JSONEncoder()
             request.httpBody = try encoder.encode(apiRequest)
         }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
         return request
     }
     
 #if !os(Linux)
-    /// performs an `APIRequest`
-    ///
-    /// - Returns: a `Tuple` with the results
-    ///            - response: `APIRequest.Response` the decoded response
-    ///            - urlResponse: `URLResponse`
-    ///            - data: the raw `Data` from the `URLRequest`
-    ///
-    /// - Parameters:
-    ///     - apiRequest: the `APIRequest` object to build the request from
-    ///     - timeout: optionally specify a timeout for the request, default value is `10` seconds.
-    ///
-    /// - Throws: `LemmyAPIError`
-    public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (URLResponse, Data) {
-        let request = try urlRequest(apiRequest, timeout: timeout)
+    
+    public func performRequestWithCheckedResponse(_ request: URLRequest) async throws -> (URLResponse, Data) {
         if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
@@ -221,6 +223,28 @@ public class LemmyAPI {
         
         return (response, data)
     }
+    
+    /// performs an `APIRequest`
+    ///
+    /// - Returns: a `Tuple` with the results
+    ///            - response: `APIRequest.Response` the decoded response
+    ///            - urlResponse: `URLResponse`
+    ///            - data: the raw `Data` from the `URLRequest`
+    ///
+    /// - Parameters:
+    ///     - apiRequest: the `APIRequest` object to build the request from
+    ///     - timeout: optionally specify a timeout for the request, default value is `10` seconds.
+    ///
+    /// - Throws: `LemmyAPIError`
+    public func baseRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (URLResponse, Data) {
+        let request = try urlRequest(apiRequest, timeout: timeout)
+        return try await performRequestWithCheckedResponse(request)
+    }
+    
+    public func baseRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> (URLResponse, Data) {
+        let request = urlRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
+        return try await performRequestWithCheckedResponse(request)
+    }
 
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> T.Response {
         let (_, data) = try await baseRequest(apiRequest, timeout: timeout)
@@ -231,6 +255,44 @@ public class LemmyAPI {
         } catch {
             throw checkDecodingError(error, data: data)
         }
+    }
+    
+    public func stringRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> String {
+        let (_, data) = try await baseRequest(apiRequest, timeout: timeout)
+        
+        guard let string = String(data: data, encoding: .utf8) else {
+            let error = LemmyAPIError.stringDecoding(
+                message: "LemmyAPI error decoding response \(data)")
+            SwimmyLogger.log("LemmyAPI error decoding response: \(error)", logType: .error)
+            throw error
+        }
+        
+        return string
+    }
+    
+    public func stringRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> String {
+        let (_, data) = try await baseRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
+        
+        guard let string = String(data: data, encoding: .utf8) else {
+            let error = LemmyAPIError.stringDecoding(
+                message: "LemmyAPI error decoding response \(data)")
+            SwimmyLogger.log("LemmyAPI error decoding response: \(error)", logType: .error)
+            throw error
+        }
+        
+        return string
+    }
+    
+    public func dataRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> Data {
+        let (_, data) = try await baseRequest(apiRequest, timeout: timeout)
+        
+        return data
+    }
+    
+    public func dataRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> Data {
+        let (_, data) = try await baseRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
+        
+        return data
     }
     
     public func statusRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> Bool {
@@ -246,6 +308,17 @@ public class LemmyAPI {
             } catch {
                 throw checkDecodingError(error, data: data)
             }
+        }
+    }
+    
+    public func statusRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> Bool {
+        let (_, data) = try await baseRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
+        
+        do {
+            let decodedResult = try decoder.decode(SuccessResponse.self, from: data)
+            return decodedResult.success
+        } catch {
+            throw checkDecodingError(error, data: data)
         }
     }
     

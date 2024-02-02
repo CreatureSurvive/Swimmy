@@ -11,6 +11,7 @@ public enum LemmyAPIError: Error {
     case network(code: Int, description: String)
     case lemmyError(message: String?, code: Int)
     case decoding(message: String, error: DecodingError)
+    case stringDecoding(message: String)
     case unexpectedStatusCode(Int)
     case unexpectedStatusCodeDetails(String)
     case genericError(String)
@@ -47,6 +48,8 @@ extension LemmyAPIError: LocalizedError {
             }
         case .decoding(let message, let error):
             return "LemmyApi could not decode response: \(message), reason: \(error.localizedDescription)"
+        case .stringDecoding(let message):
+            return "LemmyApi could not decode response: \(message)"
         case .invalidUrl:
             return "lemmyAPI base url is invalid"
         case .endpointResolveError:
