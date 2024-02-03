@@ -23,7 +23,7 @@ let decoder = {
 
 
 /// An instance of the Lemmy API.
-public class LemmyAPI {
+public struct LemmyAPI {
     
     private static let redact_keys = [
         "auth", "password", "new_password", "new_password_verify", "old_password", "totp_2fa_token", "captcha_answer", "captcha_uuid"
@@ -130,7 +130,7 @@ public class LemmyAPI {
     ///
     /// - Throws: `LemmyAPIError.invalidUrl`
     ///            if `baseUrl` is invalid, or in an unsupported format
-    public convenience init(baseUrl: String, version: String = "v3", headers: [String: String]? = nil, urlSession: URLSession = session) throws {
+    public init(baseUrl: String, version: String = "v3", headers: [String: String]? = nil, urlSession: URLSession = session) throws {
         var baseUrl = baseUrl.lowercased()
         let regex = "https?://"
         if baseUrl.range(of: regex, options: .regularExpression) == nil {
