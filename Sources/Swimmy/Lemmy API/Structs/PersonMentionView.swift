@@ -17,7 +17,7 @@ public struct PersonMentionView: Codable, Hashable {
     public let creator_is_admin: Bool? // v0.19 added
     public let creator_blocked: Bool
     public let my_vote: Int?
-    public let person_mention: PersonMention
+    public var person_mention: PersonMention
     public let post: Post
     public let recipient: Person
     public let saved: Bool
