@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct LocalUserSettingsView: Codable, Hashable {
+public struct LocalUserSettingsView: Codable, Hashable, Sendable {
     public let counts: PersonAggregates
     public let local_user: LocalUserSettings
     public let person: Person

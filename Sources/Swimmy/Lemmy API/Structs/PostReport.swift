@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PostReport: Codable, Identifiable, Hashable {
+public struct PostReport: Codable, Identifiable, Hashable, Sendable {
     public let creator_id: Int
     public let id: Int
     public let original_post_body: String?

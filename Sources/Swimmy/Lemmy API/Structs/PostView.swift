@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PostView: Codable, Hashable {
+public struct PostView: Codable, Hashable, Sendable {
     public let community: Community
     public let counts: PostAggregates
     public var creator: Person

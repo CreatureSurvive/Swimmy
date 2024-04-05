@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PersonBlockView: Codable, Hashable {
+public struct PersonBlockView: Codable, Hashable, Sendable {
     public let person: Person
     public let target: Person
 

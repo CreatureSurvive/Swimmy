@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommentAggregates: Codable, Identifiable, Hashable {
+public struct CommentAggregates: Codable, Identifiable, Hashable, Sendable {
     public let child_count: Int
     public let comment_id: Int
     public let downvotes: Int

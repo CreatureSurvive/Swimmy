@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol APIRequest: Codable, Hashable {
+public protocol APIRequest: Codable, Hashable, Sendable {
 	static var httpMethod: HTTPMethod { get }
 	static var path: String { get }
     var jwt: String? { get }
@@ -15,7 +15,7 @@ public protocol APIRequest: Codable, Hashable {
 	associatedtype Response: APIResponse
 }
 
-public protocol APIResponse: Codable {
+public protocol APIResponse: Codable, Sendable {
 }
 
 public enum HTTPMethod: String {

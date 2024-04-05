@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PrivateMessageReport: Codable, Identifiable, Hashable {
+public struct PrivateMessageReport: Codable, Identifiable, Hashable, Sendable {
     public let creator_id: Int
     public let id: Int
     public let original_pm_text: String

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModFeaturePost: Codable, Identifiable, Hashable {
+public struct ModFeaturePost: Codable, Identifiable, Hashable, Sendable {
     public let featured: Bool
     public let id: Int
     public let is_featured_community: Bool

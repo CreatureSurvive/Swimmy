@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModLockPost: Codable, Identifiable, Hashable {
+public struct ModLockPost: Codable, Identifiable, Hashable, Sendable {
     public let id: Int
     public let locked: Bool?
     public let mod_person_id: Int

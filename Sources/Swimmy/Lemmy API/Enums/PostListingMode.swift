@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum PostListingMode: String, Codable, CustomStringConvertible, CaseIterable {
+public enum PostListingMode: String, Codable, CustomStringConvertible, CaseIterable, Sendable {
     case list = "List"
     case card = "Card"
     case smallcard = "SmallCard"

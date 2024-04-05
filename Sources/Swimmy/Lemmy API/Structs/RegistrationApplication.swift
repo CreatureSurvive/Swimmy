@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RegistrationApplication: Codable, Identifiable, Hashable {
+public struct RegistrationApplication: Codable, Identifiable, Hashable, Sendable {
     public let admin_id: Int?
     public let answer: String
     public let deny_reason: String?

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PersonMention: Codable, Identifiable, Hashable {
+public struct PersonMention: Codable, Identifiable, Hashable, Sendable {
     public let comment_id: Int
     public let id: Int
     public let published: String

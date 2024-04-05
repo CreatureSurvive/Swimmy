@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct AdminPurgePerson: Codable, Identifiable, Hashable {    
+public struct AdminPurgePerson: Codable, Identifiable, Hashable, Sendable {    
     public let admin_person_id: Int
     public let id: Int
     public let reason: String?

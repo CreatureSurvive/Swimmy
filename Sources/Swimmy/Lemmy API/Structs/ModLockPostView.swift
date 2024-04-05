@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModLockPostView: Codable, Hashable {
+public struct ModLockPostView: Codable, Hashable, Sendable {
     public let community: Community
     public let mod_lock_post: ModLockPost
     public let moderator: Person?

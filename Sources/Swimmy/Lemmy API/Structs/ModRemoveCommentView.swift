@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModRemoveCommentView: Codable, Hashable {
+public struct ModRemoveCommentView: Codable, Hashable, Sendable {
     public let comment: Comment
     public let commenter: Person
     public let community: Community

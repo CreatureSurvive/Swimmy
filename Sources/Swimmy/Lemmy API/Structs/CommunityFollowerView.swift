@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommunityFollowerView: Codable, Hashable {
+public struct CommunityFollowerView: Codable, Hashable, Sendable {
     public let community: Community
     public let follower: Person
 

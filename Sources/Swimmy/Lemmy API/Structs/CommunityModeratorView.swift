@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommunityModeratorView: Codable, Hashable {
+public struct CommunityModeratorView: Codable, Hashable, Sendable {
     public let community: Community
     public let moderator: Person
 

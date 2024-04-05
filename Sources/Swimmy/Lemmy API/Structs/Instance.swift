@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Instance: Codable, Identifiable, Hashable {
+public struct Instance: Codable, Identifiable, Hashable, Sendable {
     public let id: Int
     public let domain: String
     public let published: String
@@ -27,7 +27,7 @@ public struct Instance: Codable, Identifiable, Hashable {
     }
 }
 
-public struct ReadableFederationState: Codable, Hashable {
+public struct ReadableFederationState: Codable, Hashable, Sendable {
    public let instance_id: Int
    public let last_successful_id: Int?
    public let last_successful_published_time: String?

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PostAggregates: Codable, Identifiable, Hashable {
+public struct PostAggregates: Codable, Identifiable, Hashable, Sendable {
     public let comments: Int
     public let downvotes: Int
     public let featured_community: Bool? // v0.19 removed

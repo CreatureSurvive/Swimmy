@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModAddView: Codable, Hashable {
+public struct ModAddView: Codable, Hashable, Sendable {
     public let mod_add: ModAdd
     public let modded_person: Person
     public let moderator: Person?

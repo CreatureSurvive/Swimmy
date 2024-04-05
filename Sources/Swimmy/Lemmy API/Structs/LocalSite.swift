@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct LocalSite: Codable, Identifiable, Hashable {
+public struct LocalSite: Codable, Identifiable, Hashable, Sendable {
     public let actor_name_max_length: Int
     public let application_email_admins: Bool
     public let application_question: String?

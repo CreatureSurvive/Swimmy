@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SiteMetadata: Codable, Hashable {
+public struct SiteMetadata: Codable, Hashable, Sendable {
     public let description: String?
     public let html: String?
     public let image: String?

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct LocalUserSettings: Codable, Identifiable, Hashable {
+public struct LocalUserSettings: Codable, Identifiable, Hashable, Sendable {
     public let accepted_application: Bool
     public let default_listing_type: ListingType // changed from int in v0.18
     public let default_sort_type: SortType // changed from int in v0.18

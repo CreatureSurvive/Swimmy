@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModBanFromCommunityView: Codable, Hashable {
+public struct ModBanFromCommunityView: Codable, Hashable, Sendable {
     public let banned_person: Person
     public let community: Community
     public let mod_ban_from_community: ModBanFromCommunity

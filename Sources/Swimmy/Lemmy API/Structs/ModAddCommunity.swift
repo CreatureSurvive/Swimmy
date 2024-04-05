@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModAddCommunity: Codable, Identifiable, Hashable {
+public struct ModAddCommunity: Codable, Identifiable, Hashable, Sendable {
     public let community_id: Int
     public let id: Int
     public let mod_person_id: Int

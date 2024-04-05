@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Person: Codable, Identifiable, Hashable {
+public struct Person: Codable, Identifiable, Hashable, Sendable {
     public let actor_id: String
     public let admin: Bool? // v0.19 change to optional
     public let avatar: String?

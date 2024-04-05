@@ -8,7 +8,7 @@
 import Foundation
 
 /// Different post sort types used in lemmy.
-public enum SortType: String, Codable, CustomStringConvertible, CaseIterable {
+public enum SortType: String, Codable, CustomStringConvertible, CaseIterable, Sendable {
 	case active = "Active"
 	case hot = "Hot"
 	case mostComments = "MostComments"

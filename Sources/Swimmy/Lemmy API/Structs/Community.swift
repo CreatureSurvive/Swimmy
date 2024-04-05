@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Community: Codable, Identifiable, Hashable {
+public struct Community: Codable, Identifiable, Hashable, Sendable {
     
     
     public let actor_id: String

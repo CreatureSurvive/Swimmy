@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PersonView: Codable, Hashable {
+public struct PersonView: Codable, Hashable, Sendable {
     public let counts: PersonAggregates
     public let person: Person
     public let is_admin: Bool? // v0.19 added

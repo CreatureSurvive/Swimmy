@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModTransferCommunityView: Codable, Hashable {
+public struct ModTransferCommunityView: Codable, Hashable, Sendable {
     public let community: Community
     public let mod_transfer_community: ModTransferCommunity
     public let modded_person: Person

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModBan: Codable, Identifiable, Hashable {
+public struct ModBan: Codable, Identifiable, Hashable, Sendable {
     public let banned: Bool
     public let expires: String?
     public let id: Int

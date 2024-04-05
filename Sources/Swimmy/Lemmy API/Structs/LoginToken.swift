@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct LoginToken: Codable, Hashable {
+public struct LoginToken: Codable, Hashable, Sendable {
     public let user_id: Int
     public let published: String
     public let ip: String?

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommentView: Codable, Hashable {
+public struct CommentView: Codable, Hashable, Sendable {
     public let comment: Comment
     public let community: Community
     public let counts: CommentAggregates

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommentReportView: Codable, Hashable {
+public struct CommentReportView: Codable, Hashable, Sendable {
     public var comment: Comment
     public var comment_creator: Person
     public let comment_report: CommentReport

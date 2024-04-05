@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum PostFeatureType: String, Codable, CustomStringConvertible, CaseIterable {
+public enum PostFeatureType: String, Codable, CustomStringConvertible, CaseIterable, Sendable {
 	case community = "Community"
 	case local = "Local"
 

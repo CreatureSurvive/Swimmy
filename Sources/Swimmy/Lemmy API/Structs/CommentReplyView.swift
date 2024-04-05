@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommentReplyView: Codable, Hashable {
+public struct CommentReplyView: Codable, Hashable, Sendable {
     public let comment: Comment
     public var comment_reply: CommentReply
     public let community: Community

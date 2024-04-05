@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ModHideCommunity: Codable, Identifiable, Hashable {
+public struct ModHideCommunity: Codable, Identifiable, Hashable, Sendable {
     
     public let id: Int
     public let community_id: Int

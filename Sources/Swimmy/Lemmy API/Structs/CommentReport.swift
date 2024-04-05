@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommentReport: Codable, Identifiable, Hashable {
+public struct CommentReport: Codable, Identifiable, Hashable, Sendable {
     public let comment_id: Int
     public let creator_id: Int
     public let id: Int

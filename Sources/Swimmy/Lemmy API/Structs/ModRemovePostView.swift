@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ModRemovePostView: Codable, Hashable {
+public struct ModRemovePostView: Codable, Hashable, Sendable {
     public let community: Community
     public let mod_remove_post: ModRemovePost
     public let moderator: Person?

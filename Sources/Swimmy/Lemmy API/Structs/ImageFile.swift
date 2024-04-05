@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ImageFile: Codable, Hashable {
+public struct ImageFile: Codable, Hashable, Sendable {
     public let delete_token: String
     public let file: String
 

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Language: Codable, Identifiable, Hashable {
+public struct Language: Codable, Identifiable, Hashable, Sendable {
     public let code: String
     public let id: Int
     public let name: String

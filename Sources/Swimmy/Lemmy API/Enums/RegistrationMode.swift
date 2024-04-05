@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum RegistrationMode: String, Codable, CustomStringConvertible, CaseIterable {
+public enum RegistrationMode: String, Codable, CustomStringConvertible, CaseIterable, Sendable {
 	case closed = "Closed"
 	case open = "Open"
 	case requireApplication = "RequireApplication"

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CommunityView: Codable, Hashable {
+public struct CommunityView: Codable, Hashable, Sendable {
     public let blocked: Bool
     public let community: Community
     public let counts: CommunityAggregates

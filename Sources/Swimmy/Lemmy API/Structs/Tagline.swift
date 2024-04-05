@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Tagline: Codable, Identifiable, Hashable {
+public struct Tagline: Codable, Identifiable, Hashable, Sendable {
     public let content: String
     public let id: Int
     public let local_site_id: Int

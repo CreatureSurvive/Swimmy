@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PersonAggregates: Codable, Identifiable, Hashable {
+public struct PersonAggregates: Codable, Identifiable, Hashable, Sendable {
     public let comment_count: Int
     public let comment_score: Int? // v0.19 removed
     public let id: Int? // v0.19 removed

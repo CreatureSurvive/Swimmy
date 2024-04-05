@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct FederatedInstances: Codable, Hashable {
+public struct FederatedInstances: Codable, Hashable, Sendable {
     public let allowed: [Instance]?
     public let blocked: [Instance]?
     public let linked: [Instance]

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RegistrationApplicationView: Codable, Hashable {
+public struct RegistrationApplicationView: Codable, Hashable, Sendable {
     public let admin: Person?
     public let creator: Person
     public let creator_local_user: LocalUserSettings
