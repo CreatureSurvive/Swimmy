@@ -17,12 +17,13 @@ public struct PostView: Codable, Hashable, Sendable {
     public let creator_blocked: Bool
     public let my_vote: Int?
     public let post: Post
+    public let hidden: Bool? // v0.19.4 added
     public var read: Bool
     public var saved: Bool
     public var subscribed: SubscribedType
     public let unread_comments: Int
     
-    public init(community: Community, counts: PostAggregates, creator: Person, creator_banned_from_community: Bool, creator_is_moderator: Bool? = nil, creator_is_admin: Bool? = nil, creator_blocked: Bool, my_vote: Int? = nil, post: Post, read: Bool, saved: Bool, subscribed: SubscribedType, unread_comments: Int) {
+    public init(community: Community, counts: PostAggregates, creator: Person, creator_banned_from_community: Bool, creator_is_moderator: Bool? = nil, creator_is_admin: Bool? = nil, creator_blocked: Bool, my_vote: Int? = nil, post: Post, read: Bool, hidden: Bool? = nil, saved: Bool, subscribed: SubscribedType, unread_comments: Int) {
         self.community = community
         self.counts = counts
         self.creator = creator
@@ -32,6 +33,7 @@ public struct PostView: Codable, Hashable, Sendable {
         self.creator_blocked = creator_blocked
         self.my_vote = my_vote
         self.post = post
+        self.hidden = hidden
         self.read = read
         self.saved = saved
         self.subscribed = subscribed

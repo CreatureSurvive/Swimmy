@@ -26,17 +26,19 @@ public struct GetPostsRequest: APIRequest {
 	public let limit: Int?
 	public let page: Int?
 	public let saved_only: Bool?
+    public let show_hidden: Bool? // v0.19.4 added
 	public let sort: SortType?
 	public let type_: ListingType?
     public let page_cursor: String?
 
-    public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, page: Int? = nil, saved_only: Bool? = nil, sort: SortType? = nil, type_: ListingType? = nil, page_cursor: String? = nil) {
+    public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, page: Int? = nil, saved_only: Bool? = nil, show_hidden: Bool? = nil, sort: SortType? = nil, type_: ListingType? = nil, page_cursor: String? = nil) {
 		self.auth = auth
 		self.community_id = community_id
 		self.community_name = community_name
 		self.limit = limit
 		self.page = page
 		self.saved_only = saved_only
+        self.show_hidden = show_hidden
 		self.sort = sort
 		self.type_ = type_
         self.page_cursor = page_cursor
