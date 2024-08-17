@@ -23,10 +23,12 @@ public struct GetCommentsRequest: APIRequest {
 	public let parent_id: Int?
 	public let post_id: Int?
 	public let saved_only: Bool?
+    public let liked_only: Bool? // v0.19 added
+    public let disliked_only: Bool? // v0.19 ad
 	public let sort: CommentSortType?
 	public let type_: ListingType?
 
-	public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, max_depth: Int? = nil, page: Int? = nil, parent_id: Int? = nil, post_id: Int? = nil, saved_only: Bool? = nil, sort: CommentSortType? = nil, type_: ListingType? = nil) {
+	public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, max_depth: Int? = nil, page: Int? = nil, parent_id: Int? = nil, post_id: Int? = nil, saved_only: Bool? = nil, liked_only: Bool? = nil, disliked_only: Bool? = nil, sort: CommentSortType? = nil, type_: ListingType? = nil) {
 		self.auth = auth
 		self.community_id = community_id
 		self.community_name = community_name
@@ -36,6 +38,8 @@ public struct GetCommentsRequest: APIRequest {
 		self.parent_id = parent_id
 		self.post_id = post_id
 		self.saved_only = saved_only
+        self.liked_only = liked_only
+        self.disliked_only = disliked_only
 		self.sort = sort
 		self.type_ = type_
 	}
