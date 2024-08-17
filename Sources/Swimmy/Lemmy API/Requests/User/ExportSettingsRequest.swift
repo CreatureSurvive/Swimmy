@@ -24,7 +24,7 @@ public struct ExportSettingsRequest: APIRequest {
 public struct ExportSettingsResponse: APIResponse {
     
     // MARK: - Settings
-    public struct Settings: Codable {
+    public struct Settings: Codable, Identifiable, Hashable, Equatable, Sendable {
         public let show_bot_accounts: Bool
         public let post_listing_mode: String
         public let default_sort_type: String

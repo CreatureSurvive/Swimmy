@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Post: Codable, Identifiable, Hashable, Equatable {
+public struct Post: Codable, Identifiable, Hashable, Equatable, Sendable {
     public let ap_id: String
     public let body: String?
     public let community_id: Int
