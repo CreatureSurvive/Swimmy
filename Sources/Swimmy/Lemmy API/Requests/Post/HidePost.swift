@@ -19,15 +19,15 @@ public struct HidePost: APIRequest {
     public let post_ids: [Int]
     public let hide: Bool
 
-    public init(auth: String, post_ids: [Int], read: Bool) {
+    public init(auth: String, post_ids: [Int], hide: Bool) {
         self.auth = auth
         self.post_ids = post_ids
-        self.hide = read
+        self.hide = hide
     }
     
-    public init(auth: String, post_id: Int, read: Bool) {
+    public init(auth: String, post_id: Int, hide: Bool) {
         self.auth = auth
         self.post_ids = [post_id]
-        self.hide = read
+        self.hide = hide
     }
 }
