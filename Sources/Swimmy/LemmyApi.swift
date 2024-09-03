@@ -11,6 +11,9 @@ import Combine
 #else
 import CombineX
 #endif
+#if canImport(AsyncHTTPClient)
+import AsyncHTTPClient
+#endif
 
 let decoder = {
     let decoder = JSONDecoder()
@@ -25,7 +28,7 @@ let decoder = {
 /// An instance of the Lemmy API.
 public struct LemmyAPI {
     
-    private static let redact_keys = [
+    internal static let redact_keys = [
         "auth", "password", "new_password", "new_password_verify", "old_password", "totp_2fa_token", "captcha_answer", "captcha_uuid"
     ]
     
@@ -64,8 +67,23 @@ public struct LemmyAPI {
     
     /// an optional set of additional headers that will be sent with api requests
     /// for instance you can set the User-Agent
-    private let additionalHeaders: [String: String]
-    private let urlSession: URLSession
+    internal let additionalHeaders: [String: String]
+    internal let urlSession: URLSession
+
+#if canImport(AsyncHTTPClient)
+    internal let httpClient = {
+        HTTPClient(eventLoopGroupProvider: .singleton, configuration: .init(
+            certificateVerification: .fullVerification,
+            redirectConfiguration: .follow(max: 20, allowCycles: false),
+            timeout: .init(connect: .seconds(90), read: .seconds(90), write: .seconds(90)),
+            connectionPool: .seconds(600),
+            proxy: nil,
+            ignoreUncleanSSLShutdown: false,
+            decompression: .enabled(limit: .ratio(1000)),
+            backgroundActivityLogger: nil
+        ))
+    }()
+#endif
     
     
     /// initialize the LemmyAPI with an instance api `URL`
@@ -537,13 +555,18 @@ public struct LemmyAPI {
         return try? decoder.decode(GenericError.self, from: data)
     }
     
-    private func checkDecodingError(_ error: Error, data: Data) -> Error {
-        if let genericError = try? decoder.decode(GenericError.self, from: data) {
+    internal func checkDecodingError(_ error: Error, data: Data?) -> Error {
+        guard data != nil else {
+            SwimmyLogger.log("LemmyAPI error decoding response:", logType: .error)
+            return error
+        }
+        
+        if let genericError = try? decoder.decode(GenericError.self, from: data!) {
             SwimmyLogger.log("LemmyAPI generic error: \(genericError.json)", logType: .error)
         }
         
         let decodingError = LemmyAPIError.decoding(
-            message: String(data: data, encoding: .utf8) ?? "",
+            message: String(data: data!, encoding: .utf8) ?? "",
             error: error as! DecodingError
         )
         

@@ -19,6 +19,7 @@ public enum LemmyAPIError: Error {
     case invalidUrl
     case endpointResolveError(String)
     case notAuthorized
+    case noDataReceived
 }
 
 public struct GenericError: Codable {
@@ -56,6 +57,8 @@ extension LemmyAPIError: LocalizedError {
             return "Failed to resolve endpoint: check the instance url"
         case .notAuthorized:
             return "auth (jwt) not set"
+        case .noDataReceived:
+            return "the request resulted in an empty response body"
         }
     }
 }
