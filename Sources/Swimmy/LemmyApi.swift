@@ -382,6 +382,56 @@ public struct LemmyAPI {
         })
     }
     
+    public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) throws -> AnyPublisher<T.Response, Error> {
+        let request = try urlRequest(apiRequest, timeout: timeout)
+        if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
+            SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
+        }
+#if canImport(FoundationNetworking)
+        let session = urlSession.cx
+#else
+        let session = urlSession
+#endif
+        
+        return session.dataTaskPublisher(for: request).mapError { error in
+            return LemmyAPIError.network(code: error.code.rawValue, description: error.localizedDescription)
+        }
+        .tryMap { v in
+            let code = (v.response as! HTTPURLResponse).statusCode
+            if !(200..<300).contains(code) {
+                
+                SwimmyLogger.log("unexpectedStatusCode: (\(code)) \(String(data: v.data, encoding: .utf8) ?? "")", logType: .error)
+                if let decoded = try? decoder.decode(GenericError.self, from: v.data) {
+                    throw LemmyAPIError.lemmyError(message: decoded.error, code: code)
+                }
+                throw LemmyAPIError.network(code: code, description: String(data: v.data, encoding: .utf8) ?? "")
+            }
+            return v
+        }
+        //        .retryWithDelay(retries: retries, delay: 2, scheduler: LemmyAPI.dispatchQueue.cx)
+        .flatMap { v in
+            Just(v.data)
+                .decode(type: T.Response.self, decoder: decoder)
+                .mapError { error in
+                    let decodingError = LemmyAPIError.decoding(
+                        message: String(data: v.data, encoding: .utf8) ?? "",
+                        error: error as! DecodingError
+                    )
+                    SwimmyLogger.log("LemmyAPI error decoding response: \(error)", logType: .error)
+                    return decodingError
+                }
+                .tryCatch { decodingError in
+                    Just(v.data)
+                        .decode(type: GenericError.self, decoder: decoder)
+                        .mapError { _ in decodingError }
+                        .tryMap { throw LemmyAPIError.lemmyError(message: $0.error, code: 200) }
+                }
+        }
+        .mapError { $0 as! LemmyAPIError }
+        .receive(on: DispatchQueue.main.cx)
+        .eraseToAnyPublisher()
+    }
+    
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, store: inout Set<AnyCancellable>) async -> (T.Response?, Error?) {
         return await withCheckedContinuation { continuation in
             do {
