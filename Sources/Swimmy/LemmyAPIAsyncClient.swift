@@ -6,9 +6,13 @@
 //
 
 import Foundation
+import NIOCore
+#if os(Linux)
+import NIOFoundationCompat
+#endif
+
 #if canImport(AsyncHTTPClient)
 import AsyncHTTPClient
-import NIOCore
 
 // MARK: AsyncHTTPClient
 extension LemmyAPI {
@@ -50,8 +54,7 @@ extension LemmyAPI {
         
         if T.httpMethod == .get, let url = request.url.asURL {
             let mirror = Mirror(reflecting: apiRequest)
-            if let newUrl = request.url.asURL?
-                .appending(queryItems: mirror.children.compactMap { label, value in
+            if let newUrl = url.appending(queryItems: mirror.children.compactMap { label, value in
                     guard let label = label,
                           let valueString = value as? CustomStringConvertible else { return nil }
                     
