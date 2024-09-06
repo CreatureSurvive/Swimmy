@@ -74,17 +74,17 @@ extension LemmyAPI {
         return request
     }
     
-    public func baseHTTPRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (HTTPClientResponse, Data?) {
+    public func baseHTTPRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> (HTTPClientResponse, ByteBuffer) {
         let request = try httpRequest(apiRequest, timeout: timeout)
         return try await performRequestWithCheckedResponse(request, timeout: timeout)
     }
     
-    public func baseHTTPRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> (HTTPClientResponse, Data?) {
+    public func baseHTTPRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> (HTTPClientResponse, ByteBuffer) {
         let request = httpRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
         return try await performRequestWithCheckedResponse(request, timeout: timeout)
     }
     
-    public func performRequestWithCheckedResponse(_ request: HTTPClientRequest, timeout: TimeInterval = 10) async throws -> (HTTPClientResponse, Data?) {
+    public func performRequestWithCheckedResponse(_ request: HTTPClientRequest, timeout: TimeInterval = 10) async throws -> (HTTPClientResponse, ByteBuffer) {
         if let redactedUrl = request.url.asURL?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
@@ -94,10 +94,9 @@ extension LemmyAPI {
         for try await var chunk in response.body {
             buffer.writeBuffer(&chunk)
         }
-        let data = buffer.getData(at: 0, length: buffer.readableBytes)
         
         if !(200..<300).contains(response.status.code) {
-            if data != nil, let genericError = try? decoder.decode(GenericError.self, from: data!), let reason = genericError.error {
+            if let genericError = try? decoder.decode(GenericError.self, from: buffer), let reason = genericError.error {
                 switch reason {
                 case "not_logged_in", "incorrect_login":
                     throw LemmyAPIError.notLoggedIn
@@ -108,28 +107,26 @@ extension LemmyAPI {
             throw LemmyAPIError.unexpectedStatusCodeDetails("Unexpected status code from LemmyAPI: (\(response.status) \(response.status.code)) \(response.status.reasonPhrase)")
         }
         
-        return (response, data)
+        return (response, buffer)
     }
     
     public func asyncRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> T.Response {
-        let (_, data) = try await baseHTTPRequest(apiRequest, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
+        let (_, buffer) = try await baseHTTPRequest(apiRequest, timeout: timeout)
+        guard buffer.readableBytes > 0 else { throw LemmyAPIError.noDataReceived }
         
         do {
-            let decodedResult = try decoder.decode(T.Response.self, from: data!)
+            let decodedResult = try decoder.decode(T.Response.self, from: buffer)
             return decodedResult
         } catch {
-            throw checkDecodingError(error, data: data)
+            throw checkDecodingError(error, buffer: buffer)
         }
     }
     
     public func asyncStringRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> String {
-        let (_, data) = try await baseHTTPRequest(apiRequest, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
+        let (_, buffer) = try await baseHTTPRequest(apiRequest, timeout: timeout)
         
-        guard let string = String(data: data!, encoding: .utf8) else {
-            let error = LemmyAPIError.stringDecoding(
-                message: "LemmyAPI error decoding response \(data!)")
+        guard let string = buffer.getString(at: 0, length: buffer.readableBytes, encoding: .utf8) else {
+            let error = LemmyAPIError.stringDecoding(message: "LemmyAPI error decoding response")
             SwimmyLogger.log("LemmyAPI error decoding response: \(error)", logType: .error)
             throw error
         }
@@ -138,12 +135,10 @@ extension LemmyAPI {
     }
     
     public func asyncStringRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> String {
-        let (_, data) = try await baseHTTPRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
+        let (_, buffer) = try await baseHTTPRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
         
-        guard let string = String(data: data!, encoding: .utf8) else {
-            let error = LemmyAPIError.stringDecoding(
-                message: "LemmyAPI error decoding response \(data!)")
+        guard let string = buffer.getString(at: 0, length: buffer.readableBytes, encoding: .utf8) else {
+            let error = LemmyAPIError.stringDecoding(message: "LemmyAPI error decoding response")
             SwimmyLogger.log("LemmyAPI error decoding response: \(error)", logType: .error)
             throw error
         }
@@ -152,44 +147,68 @@ extension LemmyAPI {
     }
     
     public func asyncDataRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> Data {
-        let (_, data) = try await baseHTTPRequest(apiRequest, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
-        return data!
+        let (_, buffer) = try await baseHTTPRequest(apiRequest, timeout: timeout)
+        guard let data = buffer.getData(at: 0, length: buffer.readableBytes, byteTransferStrategy: .noCopy) else {
+            throw LemmyAPIError.noDataReceived
+        }
+        return data
     }
     
     public func asyncDataRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> Data {
-        let (_, data) = try await baseHTTPRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
-        return data!
+        let (_, buffer) = try await baseHTTPRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
+        guard let data = buffer.getData(at: 0, length: buffer.readableBytes, byteTransferStrategy: .noCopy) else {
+            throw LemmyAPIError.noDataReceived
+        }
+        return data
     }
     
     public func asyncStatusRequest<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10) async throws -> Bool {
-        let (_, data) = try await baseHTTPRequest(apiRequest, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
+        let (_, buffer) = try await baseHTTPRequest(apiRequest, timeout: timeout)
+        guard buffer.readableBytes > 0 else { throw LemmyAPIError.noDataReceived }
 
         do {
-            _ = try decoder.decode(T.Response.self, from: data!)
+            _ = try decoder.decode(T.Response.self, from: buffer)
             return true
         } catch {
             do {
-                let decodedResult = try decoder.decode(SuccessResponse.self, from: data!)
+                let decodedResult = try decoder.decode(SuccessResponse.self, from: buffer)
                 return decodedResult.success
             } catch {
-                throw checkDecodingError(error, data: data!)
+                throw checkDecodingError(error, buffer: buffer)
             }
         }
     }
     
     public func asyncStatusRequest(path: String, body: String?, contentType: String, auth: String?, method: HTTPMethod, timeout: TimeInterval = 10) async throws -> Bool {
-        let (_, data) = try await baseHTTPRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
-        guard data != nil else { throw LemmyAPIError.noDataReceived }
+        let (_, buffer) = try await baseHTTPRequest(path: path, body: body, contentType: contentType, auth: auth, method: method, timeout: timeout)
+        guard buffer.readableBytes > 0 else { throw LemmyAPIError.noDataReceived }
         
         do {
-            let decodedResult = try decoder.decode(SuccessResponse.self, from: data!)
+            let decodedResult = try decoder.decode(SuccessResponse.self, from: buffer)
             return decodedResult.success
         } catch {
-            throw checkDecodingError(error, data: data!)
+            throw checkDecodingError(error, buffer: buffer)
         }
+    }
+    
+    internal func checkDecodingError(_ error: Error, buffer: ByteBuffer?) -> Error {
+        guard buffer != nil else {
+            SwimmyLogger.log("LemmyAPI error decoding response:", logType: .error)
+            return error
+        }
+        
+        if let genericError = try? decoder.decode(GenericError.self, from: buffer!) {
+            SwimmyLogger.log("LemmyAPI generic error: \(genericError.json)", logType: .error)
+        }
+        
+        let decodingError = LemmyAPIError.decoding(
+            message: buffer!.getString(at: 0, length: buffer!.readableBytes, encoding: .utf8) ?? "",
+            error: error as! DecodingError
+        )
+        
+        SwimmyLogger.log("LemmyAPI error decoding response: \(decodingError)", logType: .error)
+        
+        return error
     }
 }
 #endif
