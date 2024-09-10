@@ -88,7 +88,7 @@ extension LemmyAPI {
         if let redactedUrl = request.url.asURL?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
-        let response = try await httpClient.execute(request, timeout: .seconds(Int64(timeout)))
+        let response = try await asyncWrapper.client.execute(request, timeout: .seconds(Int64(timeout)))
         
         var buffer: ByteBuffer = .init()
         for try await var chunk in response.body {
@@ -211,4 +211,22 @@ extension LemmyAPI {
         return error
     }
 }
+
+internal class LazyHTTPClientLoader {
+    internal var hasAsyncClient: Bool = false
+    internal lazy var client = {
+        hasAsyncClient = true
+        return HTTPClient(eventLoopGroupProvider: .singleton, configuration: .init(
+            certificateVerification: .fullVerification,
+            redirectConfiguration: .follow(max: 20, allowCycles: false),
+            timeout: .init(connect: .seconds(90), read: .seconds(90), write: .seconds(90)),
+            connectionPool: .seconds(600),
+            proxy: nil,
+            ignoreUncleanSSLShutdown: false,
+            decompression: .enabled(limit: .ratio(1000)),
+            backgroundActivityLogger: nil
+        ))
+    }()
+}
+
 #endif

@@ -71,18 +71,17 @@ public struct LemmyAPI {
     internal let urlSession: URLSession
 
 #if canImport(AsyncHTTPClient)
-    internal let httpClient = {
-        HTTPClient(eventLoopGroupProvider: .singleton, configuration: .init(
-            certificateVerification: .fullVerification,
-            redirectConfiguration: .follow(max: 20, allowCycles: false),
-            timeout: .init(connect: .seconds(90), read: .seconds(90), write: .seconds(90)),
-            connectionPool: .seconds(600),
-            proxy: nil,
-            ignoreUncleanSSLShutdown: false,
-            decompression: .enabled(limit: .ratio(1000)),
-            backgroundActivityLogger: nil
-        ))
-    }()
+    internal var asyncWrapper = LazyHTTPClientLoader()
+    
+    public func shutdownAsyncClient() async throws {
+        guard asyncWrapper.hasAsyncClient else { return }
+        try await asyncWrapper.client.shutdown()
+    }
+    
+    public func syncShutdownAsyncClient() throws {
+        guard asyncWrapper.hasAsyncClient else { return }
+        try asyncWrapper.client.syncShutdown()
+    }
 #endif
     
     
