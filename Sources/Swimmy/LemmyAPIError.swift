@@ -7,6 +7,7 @@
 
 import Foundation
 
+
 public enum LemmyAPIError: Error {
     case network(code: Int, description: String)
     case lemmyError(message: String?, code: Int)
@@ -15,16 +16,25 @@ public enum LemmyAPIError: Error {
     case unexpectedStatusCode(Int)
     case unexpectedStatusCodeDetails(String)
     case genericError(String)
+    case genericMessageError(String?, String?)
     case notLoggedIn
     case invalidUrl
     case endpointResolveError(String)
     case notAuthorized
     case noDataReceived
+    case imageTooLarge(Int)
+    case unhandledResponse(String)
+
+    static let byteCountFormatStyle = ByteCountFormatStyle(style: .file, allowedUnits: .all, spellsOutZero: true, includesActualByteCount: true, locale: Locale.current)
 }
 
 public struct GenericError: Codable {
     public let error: String?
     public let message: String?
+    
+    public var actualError: LemmyAPIError {
+        .genericMessageError(error, message)
+    }
 }
 
 extension LemmyAPIError: LocalizedError {
@@ -36,6 +46,8 @@ extension LemmyAPIError: LocalizedError {
             return "lemmy returned an unexpected status: \(details)"
         case .genericError(let error):
             return "lemmyAPI encountered an unexpected error: \(error)"
+        case .genericMessageError(let error, let message):
+            return "lemmyAPI encountered an unexpected error: \(error ?? "unknown"): (\(message ?? "nil"))"
         case .notLoggedIn:
             return "user not logged in, or session expired"
         case .network(let code, let description):
@@ -59,6 +71,10 @@ extension LemmyAPIError: LocalizedError {
             return "auth (jwt) not set"
         case .noDataReceived:
             return "the request resulted in an empty response body"
+        case .imageTooLarge(let bytes):
+            return "Uploaded image is too large! \(bytes.formatted(Self.byteCountFormatStyle))"
+        case .unhandledResponse(let message):
+            return "LemmyAPI returned an unexpected response: (\(message))"
         }
     }
 }
