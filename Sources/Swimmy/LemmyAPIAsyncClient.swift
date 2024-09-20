@@ -6,12 +6,14 @@
 //
 
 import Foundation
+#if canImport(NIOCore)
 import NIOCore
-#if os(Linux)
+#endif
+#if os(Linux) && canImport(NIOCore)
 import NIOFoundationCompat
 #endif
 
-#if canImport(AsyncHTTPClient)
+#if canImport(AsyncHTTPClient) && canImport(NIOCore)
 import AsyncHTTPClient
 
 // MARK: AsyncHTTPClient

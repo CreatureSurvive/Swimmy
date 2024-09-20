@@ -70,7 +70,7 @@ public struct LemmyAPI {
     internal let additionalHeaders: [String: String]
     internal let urlSession: URLSession
 
-#if canImport(AsyncHTTPClient)
+#if canImport(AsyncHTTPClient) && canImport(NIOCore)
     internal var asyncWrapper = LazyHTTPClientLoader()
     
     public func shutdownAsyncClient() async throws {
