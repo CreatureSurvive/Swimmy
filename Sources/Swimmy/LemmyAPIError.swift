@@ -25,7 +25,9 @@ public enum LemmyAPIError: Error {
     case imageTooLarge(Int)
     case unhandledResponse(String)
 
+    #if !os(Linux)
     static let byteCountFormatStyle = ByteCountFormatStyle(style: .file, allowedUnits: .all, spellsOutZero: true, includesActualByteCount: true, locale: Locale.current)
+    #endif
 }
 
 public struct GenericError: Codable {
@@ -72,7 +74,11 @@ extension LemmyAPIError: LocalizedError {
         case .noDataReceived:
             return "the request resulted in an empty response body"
         case .imageTooLarge(let bytes):
+            #if os(Linux)
+            return "Uploaded image is too large! \(bytes / 1024 / 1024) mb"
+            #else
             return "Uploaded image is too large! \(bytes.formatted(Self.byteCountFormatStyle))"
+            #endif
         case .unhandledResponse(let message):
             return "LemmyAPI returned an unexpected response: (\(message))"
         }
