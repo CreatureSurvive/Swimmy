@@ -217,13 +217,15 @@ public struct LemmyAPI {
         return request
     }
     
-#if !os(Linux)
-    
     public func performRequestWithCheckedResponse(_ request: URLRequest) async throws -> (URLResponse, Data) {
         if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
+        #if os(Linux)
+        let (data, response) = try await urlSession.asyncData(for: request)
+        #else
         let (data, response) = try await urlSession.data(for: request)
+        #endif
         
         let code = (response as! HTTPURLResponse).statusCode
         if !(200..<300).contains(code) {
@@ -339,7 +341,6 @@ public struct LemmyAPI {
         }
     }
     
-#endif
     
     public func request<T: APIRequest>(_ apiRequest: T, timeout: TimeInterval = 10, response: @escaping (Result<T.Response, Error>) -> Void) throws -> AnyCancellable {
         let request = try urlRequest(apiRequest, timeout: timeout)
@@ -542,7 +543,6 @@ public struct LemmyAPI {
 
 extension LemmyAPI {
     
-#if !os(Linux)
     /// finds the correct api endpoint for a lemmy instance base url
     /// - Throws: `LemmyAPIError.endpointResolveError` if the endpoint could not be resolved
     /// - Returns: the url of the resolved api endpoint of the `baseInstanceAddress`
@@ -588,7 +588,11 @@ extension LemmyAPI {
         request.timeoutInterval = TimeInterval(2)
         
         do {
+            #if os(Linux)
+            let (_, response) = try await session.asyncData(for: request)
+            #else
             let (_, response) = try await session.data(for: request)
+            #endif
             let httpResponse: HTTPURLResponse = response as! HTTPURLResponse
             
             SwimmyLogger.log("Response for endpoint \(url) is \(httpResponse.statusCode)")
@@ -598,7 +602,6 @@ extension LemmyAPI {
             return false
         }
     }
-#endif
 }
 
 enum AsyncError: Error {
