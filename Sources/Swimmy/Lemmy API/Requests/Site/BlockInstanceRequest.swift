@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct BlockInstance: APIRequest {
+public struct BlockInstanceRequest: APIRequest {
     public typealias Response = BlockInstanceResponse
 
     public static let httpMethod: HTTPMethod = .post
@@ -18,7 +18,7 @@ public struct BlockInstance: APIRequest {
     public let instance_id: Int
     public let block: Bool
     
-    init(auth: String, instance_id: Int, block: Bool) {
+    public init(auth: String, instance_id: Int, block: Bool) {
         self.auth = auth
         self.instance_id = instance_id
         self.block = block
@@ -26,5 +26,5 @@ public struct BlockInstance: APIRequest {
 }
 
 public struct BlockInstanceResponse: APIResponse {
-    let blocked: Bool
+    public let blocked: Bool
 }
