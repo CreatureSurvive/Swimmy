@@ -8,13 +8,13 @@
 import Foundation
 
 public struct MyUserInfo: Codable, Hashable, Sendable {
-    public let community_blocks: [CommunityBlockView]
+    public var community_blocks: [CommunityBlockView]
     public let discussion_languages: [Int]
-    public let follows: [CommunityFollowerView]
+    public var follows: [CommunityFollowerView]
     public let local_user_view: LocalUserSettingsView
     public let moderates: [CommunityModeratorView]
-    public let instance_blocks: [InstanceBlockView]? // v0.1.9
-    public let person_blocks: [PersonBlockView]
+    public var instance_blocks: [InstanceBlockView]? // v0.1.9
+    public var person_blocks: [PersonBlockView]
 
     public init(community_blocks: [CommunityBlockView], discussion_languages: [Int], follows: [CommunityFollowerView], local_user_view: LocalUserSettingsView, moderates: [CommunityModeratorView], instance_blocks: [InstanceBlockView]? = nil, person_blocks: [PersonBlockView]) {
         self.community_blocks = community_blocks
