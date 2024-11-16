@@ -29,11 +29,13 @@ public struct GetPostsRequest: APIRequest {
     public let liked_only: Bool? // v0.19 added
     public let disliked_only: Bool? // v0.19 added
     public let show_hidden: Bool? // v0.19.4 added
+    public let show_read: Bool? //v0.19.6 added
+    public let show_nsfw: Bool? //v0.19.6 added
 	public let sort: SortType?
 	public let type_: ListingType?
     public let page_cursor: String?
 
-    public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, page: Int? = nil, saved_only: Bool? = nil, liked_only: Bool? = nil, disliked_only: Bool? = nil, show_hidden: Bool? = nil, sort: SortType? = nil, type_: ListingType? = nil, page_cursor: String? = nil) {
+    public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, limit: Int? = nil, page: Int? = nil, saved_only: Bool? = nil, liked_only: Bool? = nil, disliked_only: Bool? = nil, show_hidden: Bool? = nil, show_read: Bool? = nil, show_nsfw: Bool? = nil, sort: SortType? = nil, type_: ListingType? = nil, page_cursor: String? = nil) {
 		self.auth = auth
 		self.community_id = community_id
 		self.community_name = community_name
@@ -43,8 +45,10 @@ public struct GetPostsRequest: APIRequest {
         self.liked_only = liked_only
         self.disliked_only = disliked_only
         self.show_hidden = show_hidden
-		self.sort = sort
-		self.type_ = type_
+        self.show_read = show_read
+        self.show_nsfw = show_nsfw
+        self.sort = sort
+        self.type_ = type_
         self.page_cursor = page_cursor
 	}
 }

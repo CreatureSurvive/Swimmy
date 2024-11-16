@@ -22,8 +22,9 @@ public struct PostView: Codable, Hashable, Sendable {
     public var saved: Bool
     public var subscribed: SubscribedType
     public let unread_comments: Int
+    public let image_details: ImageDetails? // v0.19.6 added
     
-    public init(community: Community, counts: PostAggregates, creator: Person, creator_banned_from_community: Bool, creator_is_moderator: Bool? = nil, creator_is_admin: Bool? = nil, creator_blocked: Bool, my_vote: Int? = nil, post: Post, read: Bool, hidden: Bool? = nil, saved: Bool, subscribed: SubscribedType, unread_comments: Int) {
+    public init(community: Community, counts: PostAggregates, creator: Person, creator_banned_from_community: Bool, creator_is_moderator: Bool? = nil, creator_is_admin: Bool? = nil, creator_blocked: Bool, my_vote: Int? = nil, post: Post, read: Bool, hidden: Bool? = nil, saved: Bool, subscribed: SubscribedType, unread_comments: Int, image_details: ImageDetails? = nil) {
         self.community = community
         self.counts = counts
         self.creator = creator
@@ -38,5 +39,6 @@ public struct PostView: Codable, Hashable, Sendable {
         self.saved = saved
         self.subscribed = subscribed
         self.unread_comments = unread_comments
+        self.image_details = image_details
     }
 }

@@ -24,6 +24,8 @@ public struct SearchRequest: APIRequest {
 	public let q: String
 	public let sort: SortType?
 	public let type_: SearchType?
+    
+//    public let title_only: Bool? // v0.19.6 added
 
 	public init(auth: String? = nil, community_id: Int? = nil, community_name: String? = nil, creator_id: Int? = nil, limit: Int? = nil, listing_type: ListingType? = nil, page: Int? = nil, q: String, sort: SortType? = nil, type_: SearchType? = nil) {
 		self.auth = auth
