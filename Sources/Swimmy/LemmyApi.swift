@@ -5,10 +5,11 @@ import FoundationNetworking
 #if canImport(Dispatch)
 import Dispatch
 #endif
-import CXShim
 #if canImport(Combine)
 import Combine
-#else
+#endif
+#if canImport(CombineX) && canImport(FoundationNetworking)
+import CXShim
 import CombineX
 #endif
 #if canImport(AsyncHTTPClient)
@@ -347,10 +348,12 @@ public struct LemmyAPI {
         if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && canImport(CombineX)
         let session = urlSession.cx
+        let queue = DispatchQueue.main.cx
 #else
         let session = urlSession
+        let queue = DispatchQueue.main
 #endif
         
         return session.dataTaskPublisher(for: request).mapError { error in
@@ -388,7 +391,7 @@ public struct LemmyAPI {
                 }
         }
         .mapError { $0 as! LemmyAPIError }
-        .receive(on: DispatchQueue.main.cx)
+        .receive(on: queue)
         .sink(receiveCompletion: { completion in
             switch completion {
             case .finished: break
@@ -405,10 +408,12 @@ public struct LemmyAPI {
         if let redactedUrl = request.url?.redacting(queryItems: Self.redact_keys) {
             SwimmyLogger.log("LemmyAPI request: \(redactedUrl)", logType: .info)
         }
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && canImport(CombineX)
         let session = urlSession.cx
+        let queue = DispatchQueue.main.cx
 #else
         let session = urlSession
+        let queue = DispatchQueue.main
 #endif
         
         return session.dataTaskPublisher(for: request).mapError { error in
@@ -446,7 +451,7 @@ public struct LemmyAPI {
                 }
         }
         .mapError { $0 as! LemmyAPIError }
-        .receive(on: DispatchQueue.main.cx)
+        .receive(on: queue)
         .eraseToAnyPublisher()
     }
     
