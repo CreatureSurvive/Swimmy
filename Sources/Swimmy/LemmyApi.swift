@@ -636,3 +636,25 @@ extension AnyPublisher {
         }
     }
 }
+
+extension LemmyAPI {
+    public func cancelAllTasks(completionHandler: (() -> Void)? = nil) {
+        urlSession.getAllTasks { tasks in
+            tasks.forEach {
+                if $0.state == .running {
+                    $0.cancel()
+                }
+            }
+            completionHandler?()
+        }
+    }
+    
+    public func cancelAllTasks() async {
+        let tasks = await urlSession.allTasks
+        tasks.forEach {
+            if $0.state == .running {
+                $0.cancel()
+            }
+        }
+    }
+}
