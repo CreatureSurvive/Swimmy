@@ -30,4 +30,5 @@ public struct GetSiteResponse: APIResponse {
 	public let site_view: SiteView
 	public let taglines: [Tagline]?
 	public let version: String
+    public let custom_emojis: [CustomEmojiView]?
 }
