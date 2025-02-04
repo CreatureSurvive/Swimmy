@@ -27,5 +27,5 @@ public struct ListMediaRequest: APIRequest {
 }
 
 public struct ListMediaResponse: APIResponse {
-    let images: [LocalImageView]
+    public let images: [LocalImageView]
 }
