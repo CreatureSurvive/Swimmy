@@ -7,10 +7,11 @@
 
 #if canImport(Combine)
 import Combine
-#else
+#elseif canImport(CombineX)
 import CombineX
 #endif
 
+#if canImport(Combine) || canImport(CombineX)
 public extension Publisher {
     /**
      Creates a new publisher which will upon failure retry the upstream publisher a provided number of times, with the provided delay between retry attempts.
@@ -113,3 +114,4 @@ extension Publishers {
         }
     }
 }
+#endif
